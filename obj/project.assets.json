@@ -1,7 +1,7 @@
 {
   "version": 3,
   "targets": {
-    "net8.0": {
+    "net9.0": {
       "Microsoft.AspNetCore.Authentication.Abstractions/2.3.0": {
         "type": "package",
         "dependencies": {
@@ -1474,34 +1474,35 @@
     }
   },
   "projectFileDependencyGroups": {
-    "net8.0": [
+    "net9.0": [
       "Microsoft.AspNetCore.SignalR >= 1.2.0"
     ]
   },
   "packageFolders": {
-    "/Users/amundfremming/.nuget/packages/": {}
+    "/Users/amund/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/amundfremming/Documents/personal/tero/tero-session/tero-session.csproj",
+      "projectUniqueName": "/Users/amund/code/personal/tero/tero-session/tero-session.csproj",
       "projectName": "tero-session",
-      "projectPath": "/Users/amundfremming/Documents/personal/tero/tero-session/tero-session.csproj",
-      "packagesPath": "/Users/amundfremming/.nuget/packages/",
-      "outputPath": "/Users/amundfremming/Documents/personal/tero/tero-session/obj/",
+      "projectPath": "/Users/amund/code/personal/tero/tero-session/tero-session.csproj",
+      "packagesPath": "/Users/amund/.nuget/packages/",
+      "outputPath": "/Users/amund/code/personal/tero/tero-session/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/Users/amundfremming/.nuget/NuGet/NuGet.Config"
+        "/Users/amund/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
-        "net8.0"
+        "net9.0"
       ],
       "sources": {
+        "/opt/homebrew/Cellar/dotnet/9.0.8/libexec/library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
-        "net8.0": {
-          "targetAlias": "net8.0",
+        "net9.0": {
+          "targetAlias": "net9.0",
           "projectReferences": {}
         }
       },
@@ -1509,11 +1510,17 @@
         "warnAsError": [
           "NU1605"
         ]
-      }
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      },
+      "SdkAnalysisLevel": "9.0.100"
     },
     "frameworks": {
-      "net8.0": {
-        "targetAlias": "net8.0",
+      "net9.0": {
+        "targetAlias": "net9.0",
         "dependencies": {
           "Microsoft.AspNetCore.SignalR": {
             "target": "Package",
@@ -1539,7 +1546,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/opt/homebrew/Cellar/dotnet/8.0.1/libexec/sdk/8.0.101/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/opt/homebrew/Cellar/dotnet/9.0.8/libexec/sdk/9.0.109/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
