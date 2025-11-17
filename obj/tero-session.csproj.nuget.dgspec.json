@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/Users/amundfremming/code/hobby/tero-session/tero-session.csproj": {}
+    "/home/runner/work/tero-session/tero-session/tero-session.csproj": {}
   },
   "projects": {
-    "/Users/amundfremming/code/hobby/tero-session/tero-session.csproj": {
+    "/home/runner/work/tero-session/tero-session/tero-session.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/amundfremming/code/hobby/tero-session/tero-session.csproj",
+        "projectUniqueName": "/home/runner/work/tero-session/tero-session/tero-session.csproj",
         "projectName": "tero-session",
-        "projectPath": "/Users/amundfremming/code/hobby/tero-session/tero-session.csproj",
-        "packagesPath": "/Users/amundfremming/.nuget/packages/",
-        "outputPath": "/Users/amundfremming/code/hobby/tero-session/obj/",
+        "projectPath": "/home/runner/work/tero-session/tero-session/tero-session.csproj",
+        "packagesPath": "/home/runner/.nuget/packages/",
+        "outputPath": "/home/runner/work/tero-session/tero-session/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/amundfremming/.nuget/NuGet/NuGet.Config"
+          "/home/runner/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -32,7 +32,13 @@
           "warnAsError": [
             "NU1605"
           ]
-        }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.100"
       },
       "frameworks": {
         "net8.0": {
@@ -66,7 +72,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/opt/homebrew/Cellar/dotnet/8.0.1/libexec/sdk/8.0.101/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/10.0.100/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

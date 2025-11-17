@@ -1,11 +1,1 @@
-{
-  "Version": 1,
-  "Hash": "ZRD/a5OYwacmXTe4DH3v/SG3Ac0EH0CUyK/I9ZWtcZs=",
-  "Source": "tero-session",
-  "BasePath": "_content/tero-session",
-  "Mode": "Default",
-  "ManifestType": "Build",
-  "ReferencedProjectsConfiguration": [],
-  "DiscoveryPatterns": [],
-  "Assets": []
-}
+{"Version":1,"Hash":"uBL80QvaS4q9fwBz4nWu/HqBdnz73ihtztb8nxY7V+Y=","Source":"tero-session","BasePath":"/","Mode":"Root","ManifestType":"Build","ReferencedProjectsConfiguration":[],"DiscoveryPatterns":[],"Assets":[],"Endpoints":[]}
