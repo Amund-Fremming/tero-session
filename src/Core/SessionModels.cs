@@ -12,11 +12,6 @@ public record GameSessionRequest
     public JsonElement Payload { get; init; }
 }
 
-public enum GameType
-{
-    Spin,
-    Quiz
-}
 
 public class Auth0Options
 {
