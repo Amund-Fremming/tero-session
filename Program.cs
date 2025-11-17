@@ -9,6 +9,9 @@ services.AddControllers();
 services.AddSignalR();
 services.AddLogging();
 
+// Add HybridCache
+services.AddHybridCache();
+
 // Configure Auth0Client
 var auth0Options = builder.Configuration.GetSection("Auth0").Get<Auth0Options>()!;
 services.AddHttpClient("Auth0Client", client =>
@@ -25,7 +28,7 @@ services.AddHttpClient("PlatformClient", client =>
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 
-services.AddCoreServices();
+services.AddCoreServices(builder.Configuration);
 
 var app = builder.Build();
 
