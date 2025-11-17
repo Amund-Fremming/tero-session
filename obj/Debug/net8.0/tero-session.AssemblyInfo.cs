@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("tero-session")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+da0107abcb532fb475186a2299325a8b87ff8669")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+93689d6e4e5f31411ea9e96a4fc4543d2d273e2e")]
 [assembly: System.Reflection.AssemblyProductAttribute("tero-session")]
 [assembly: System.Reflection.AssemblyTitleAttribute("tero-session")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
