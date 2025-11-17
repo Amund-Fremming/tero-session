@@ -6,6 +6,12 @@ public static class CoreServiceExtension
     {
         services.AddScoped<PlatformClient>();
         services.AddScoped<Auth0Client>();
+        services.AddScoped<SessionCache>();
+        
+#pragma warning disable EXTEXP0018
+        services.AddHybridCache();
+#pragma warning restore EXTEXP0018
+        
         return services;
     }
 }
