@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -8,13 +10,43 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
     private readonly HttpClient _client = httpClientFactory.CreateClient(nameof(Auth0Client));
     private readonly Auth0Options _options = options.Value;
     private readonly object _lock = new();
-    private readonly CachedToken _cachedToken = new();
+    private CachedToken _cachedToken = new();
 
-    private async Task<Result<string, Exception>> GetAuthToken()
+    private async Task<Result<M2MTokenResponse, Exception>> GetAuthToken()
     {
         try
         {
-            return "";
+            M2MTokenRequest payload = new()
+            {
+                ClientId = _options.ClientId,
+                ClientSecret = _options.ClientSecret,
+                Audience = _options.Audience,
+                GrantType = "client_credentials"
+            };
+
+            var content = new StringContent(
+                JsonSerializer.Serialize(payload).ToString(),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            var response = await _client.PostAsync("/SOME", content);
+            if(!response.IsSuccessStatusCode)
+            {
+                logger.LogError("Response from auth0 was unsuccessful");
+                return new HttpRequestException("Statuscode was unsuccessful");
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            var token = JsonSerializer.Deserialize<M2MTokenResponse>(json);
+
+            if (token is null)
+            {
+                logger.LogError("Auth token response was null");
+                return new NullReferenceException("Token was null");
+            }
+
+            return token;
         }
         catch (Exception error)
         {
@@ -39,12 +71,17 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
             if (result.IsErr())
             {
                 logger.LogError("Failed to fetch auth token from auth0");
-                return result;
+                return result.Err();
             }
 
-            // TODO - set token cache
+            var response = result.Unwrap();
+            lock (_lock)
+            {
+                _cachedToken.SetToken(response.AccessToken);
+                _cachedToken.SetExpiry(response.ExpiresIn);
+            }
 
-            return result.Unwrap();
+            return response.AccessToken;
         }
         catch (Exception error)
         {

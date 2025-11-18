@@ -1,5 +1,33 @@
 using Newtonsoft.Json;
 
+public sealed record M2MTokenResponse
+{
+    [JsonProperty("access_token")]
+    public string AccessToken {get; set;} = string.Empty;
+
+    [JsonProperty("token_type")]
+    public string TokenType {get; set;} = string.Empty;
+
+    [JsonProperty("expires_in")]
+    public int ExpiresIn{get; set;} 
+}
+
+public sealed record M2MTokenRequest {
+
+    [JsonProperty("client_id")]
+    public string ClientId {get; set;} = string.Empty;
+
+    [JsonProperty("client_secret")]
+    public string ClientSecret {get; set;} = string.Empty;
+
+    [JsonProperty("audience")]
+    public string Audience{get; set;} = string.Empty;
+
+    [JsonProperty("grant_type")]
+    public string GrantType{get; set;} = string.Empty;
+
+}
+
 public enum GameCategory
 {
     [JsonProperty("casual")]
@@ -29,6 +57,17 @@ public record CachedToken
     {
         Token = string.Empty;
         ExpiresAt = DateTime.MinValue;
+    }
+
+    public void SetToken(string token)
+    {
+        Token = token;
+    }
+
+    public void SetExpiry(int seconds)
+    {
+        var expiry = DateTime.Now.AddSeconds(seconds);
+        ExpiresAt = expiry;
     }
 
     public bool IsValid()
@@ -61,6 +100,7 @@ public sealed record Result<T, E>
     public static implicit operator Result<T, E>(T data) => new(data, default!);
 
     public static implicit operator Result<T, E>(E error) => new(default!, error);
+    public E Err() => Error!;
 
     public bool IsErr() => Error is not null;
     public bool IsOk() => Data is not null;
