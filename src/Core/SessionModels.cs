@@ -3,6 +3,11 @@ using System.Text.Json.Serialization;
 
 namespace tero_session.src.Core;
 
+public interface IJoinableSession
+{
+    public void AddToSession(Guid userId);
+}
+
 public record GameSessionRequest
 {
     [JsonPropertyName("payload")]

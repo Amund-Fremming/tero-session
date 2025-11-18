@@ -10,14 +10,19 @@ namespace tero_session.src.Core;
 
 [ApiController]
 [Route("session")]
-public class SessionController(ILogger<SessionController> logger, SessionService sessionService) : ControllerBase
+public class SessionController(ILogger<SessionController> logger, GameSessionCache cache) : ControllerBase
 {
     [HttpPost("initiate/{gameType}/{key}")]
     public async Task<IActionResult> InitiateGameSession(GameType gameType, string key, [FromBody] GameSessionRequest request)
     {
         try
         {
-            var result = await sessionService.InitiateGameSession(gameType, key, request.Value);
+            var result = gameType switch
+            {
+                GameType.Spin => await cache.Insert<SpinSession>(key, request.Value),
+                GameType.Quiz=> await cache.Insert<QuizSession>(key, request.Value),
+                _ => new InvalidOperationException("Game type not supported")
+            };
 
             if (result.IsErr())
             {
@@ -44,8 +49,14 @@ public class SessionController(ILogger<SessionController> logger, SessionService
     {
         try
         {
-            var result = await sessionService.AddUserToGameSession(gameType, key, userId);
 
+            // TODO - move AddUserToSession functionality here to a local function and use this in the switch cause
+            var result = gameType switch
+            {
+                GameType.Spin => await cache.AddUserToSession<SpinSession>(key, userId),
+                _ => new InvalidOperationException("Game type not supported")
+            };
+ 
             if (result.IsErr())
             {
                 return StatusCode(500, result.Err());
