@@ -53,4 +53,18 @@ public class SessionCache<T>(HybridCache cache, ILogger<SessionCache<T>> logger)
             return error;
         }
     }
+
+    public async Task<Result<bool, Exception>> Update(string key, T value)
+    {
+        try
+        {
+            await cache.SetAsync(key, value);
+            return true;
+        }
+        catch (Exception error)
+        {
+            logger.LogError(error, "Error updating value in cache with key: {Key}", key);
+            return error;
+        }
+    }
 }

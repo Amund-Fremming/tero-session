@@ -77,8 +77,6 @@ public class SessionController(ILogger<SessionController> logger, SessionCache<S
                 return StatusCode(500, result.Err());
             }
 
-            // TODO - write back to cache
-
             return Ok("User added to session");
         }
         catch (Exception e)
@@ -98,6 +96,13 @@ public class SessionController(ILogger<SessionController> logger, SessionCache<S
 
         var session = result.Unwrap();
         session.AddToSession(userId);
+
+        var updateResult = await cache.Update(key, session);
+        if (updateResult.IsErr())
+        {
+            return "Failed to update session in cache";
+        }
+
         return true;
     }
 
