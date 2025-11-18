@@ -1,4 +1,6 @@
 using tero_session.src.Core;
+using tero_session.src.Features.Quiz;
+using tero_session.src.Features.Spin;
 
 public static class CoreServiceExtension
 {
@@ -9,7 +11,9 @@ public static class CoreServiceExtension
 
         services.AddScoped<PlatformClient>();
         services.AddScoped<Auth0Client>();
-        services.AddScoped<SessionCache>();
+
+        services.AddScoped<SessionCache<SpinSession>>();
+        services.AddScoped<SessionCache<QuizSession>>();
 
         return services;
     }

@@ -5,11 +5,8 @@ namespace tero_session.src.Core;
 
 public record GameSessionRequest
 {
-    [JsonPropertyName("game_type")]
-    public GameType GameType { get; init; }
-
     [JsonPropertyName("payload")]
-    public JsonElement Payload { get; init; }
+    public JsonElement Value { get; init; }
 }
 
 

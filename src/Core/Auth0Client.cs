@@ -12,7 +12,7 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
     private readonly object _lock = new();
     private CachedToken _cachedToken = new();
 
-    private async Task<Result<M2MTokenResponse, Exception>> GetAuthToken()
+    private async Task<Result<M2MTokenResponse, Exception>> FetchM2MToken()
     {
         try
         {
@@ -31,7 +31,7 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
             );
 
             var response = await _client.PostAsync("/SOME", content);
-            if(!response.IsSuccessStatusCode)
+            if (!response.IsSuccessStatusCode)
             {
                 logger.LogError("Response from auth0 was unsuccessful");
                 return new HttpRequestException("Statuscode was unsuccessful");
@@ -55,19 +55,19 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
         }
     }
 
-    public async Task<Result<string, Exception>> GetCachedToken()
+    public async ValueTask<Result<string, Exception>> GetToken()
     {
         try
         {
             lock (_lock)
             {
-                if(_cachedToken.IsValid())
+                if (_cachedToken.IsValid())
                 {
                     return _cachedToken.Token;
                 }
             }
 
-            var result = await GetAuthToken();
+            var result = await FetchM2MToken();
             if (result.IsErr())
             {
                 logger.LogError("Failed to fetch auth token from auth0");

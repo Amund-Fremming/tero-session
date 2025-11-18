@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 
 namespace tero_session.src.Features.Spin;
 
-public class SpinSession
+public class SpinSession : IJoinableSession
 {
     [JsonProperty("spin_id")]
     public Guid SpinId { get; set; }
@@ -41,6 +41,11 @@ public class SpinSession
     public List<SpinGamePlayer> Players { get; set; } = [];
 
     private SpinSession() { }
+
+    public void AddToSession(Guid userId)
+    {
+        throw new NotImplementedException();
+    }
 
     // TODO - implement core logic
 }

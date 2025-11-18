@@ -12,6 +12,11 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
     {
         try
         {
+            var result = await auth0Client.GetToken();
+            if (result.IsErr())
+            {
+                return result.Err();
+            }
             // TODO
             return true;
         }
@@ -26,6 +31,11 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
     {
         try
         {
+            var result = await auth0Client.GetToken();
+            if (result.IsErr())
+            {
+                return result.Err();
+            }
             // TODO
             return true;
         }
