@@ -15,6 +15,8 @@ public static class CoreServiceExtension
         services.AddScoped<SessionCache<SpinSession>>();
         services.AddScoped<SessionCache<QuizSession>>();
 
+        services.AddScoped<SessionService>();
+
         return services;
     }
 }
