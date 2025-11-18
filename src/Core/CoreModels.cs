@@ -19,3 +19,12 @@ public enum GameType
     Spin,
     Quiz
 }
+
+public record CachedToken(string Token, DateTime ExpiresAt)
+{
+    public CachedToken()
+    {
+        this.Token = string.Empty;
+        this.ExpiresAt = DateTime.MinValue;
+    }
+}

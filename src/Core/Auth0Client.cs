@@ -7,6 +7,8 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
 {
     private readonly HttpClient _client = httpClientFactory.CreateClient(nameof(Auth0Client));
     private readonly Auth0Options _options = options.Value;
+    private readonly object _locker = new();
+    private readonly Cachedtoken _cachedToken = new();
 
     private async Task<Result<string, Exception>> GetAuthToken()
     {
