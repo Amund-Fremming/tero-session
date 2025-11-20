@@ -6,46 +6,81 @@ namespace tero.session.src.Features.Spin;
 public class SpinSession : IJoinableSession
 {
     [JsonProperty("spin_id")]
-    public Guid SpinId { get; set; }
+    public Guid SpinId { get; private set; }
 
     [JsonProperty("base_id")]
-    public Guid BaseId { get; set; }
+    public Guid BaseId { get; private set; }
 
     [JsonProperty("host_id")]
-    public Guid HostId { get; set; }
+    public Guid HostId { get; private set; }
 
     [JsonProperty("name")]
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; private set; } = string.Empty;
 
     [JsonProperty("description")]
-    public string? Description { get; set; }
+    public string? Description { get; private set; }
 
-    [JsonProperty("game_type")]
-    public GameType GameType { get; set; }
+    [JsonProperty("state")]
+    public SpinGameState State{ get; private set; }
 
     [JsonProperty("category")]
-    public GameCategory Category { get; set; }
+    public GameCategory Category { get; private set; }
 
     [JsonProperty("iterations")]
-    public int Iterations { get; set; }
+    public int Iterations { get; private set; }
 
     [JsonProperty("times_played")]
-    public int TimesPlayed { get; set; }
+    public int TimesPlayed { get; private set; }
 
     [JsonProperty("last_played")]
-    public DateTime LastPlayed { get; set; }
+    public DateTime LastPlayed { get; private set; }
 
     [JsonProperty("rounds")]
-    public List<string> Rounds { get; set; } = [];
+    public List<string> Rounds { get; private set; } = [];
 
     [JsonProperty("players")]
-    public List<SpinGamePlayer> Players { get; set; } = [];
+    public List<SpinGamePlayer> Players { get; private set; } = [];
 
     private SpinSession() { }
 
-    public void AddToSession(Guid userId)
+    public void AddUser(Guid userId)
     {
-        throw new NotImplementedException();
+        var user = SpinGamePlayer.Create(userId);
+        Players.Add(user);
+    }
+
+    public IEnumerable<Guid> SelectRoundPlayers()
+    {
+        // TODO
+        return null;
+    }
+
+    public void IncrementPlayersChosen(IEnumerable<Guid> chosen)
+    {
+        // TODO
+    }
+
+    public void NextRound()
+    {
+        // Do state check so this cannot be ran before
+        // Return state
+        // TODO
+    }
+
+    public void AddRound(string round)
+    {
+        Rounds.Add(round); 
+        Iterations++;
+    } 
+
+    public int IterationsCount() => Iterations;
+    public int PlayersCount() => Players.Count;
+
+    public SpinSession Start()
+    {
+        Players.Shuffle();
+        Rounds.Shuffle();
+        return this;
     }
 
     // TODO - implement core logic

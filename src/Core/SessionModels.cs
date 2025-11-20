@@ -5,7 +5,7 @@ namespace tero.session.src.Core;
 
 public interface IJoinableSession
 {
-    public void AddToSession(Guid userId);
+    public void AddUser(Guid userId);
 }
 
 public record GameSessionRequest

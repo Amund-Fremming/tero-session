@@ -49,8 +49,6 @@ public class SessionController(ILogger<SessionController> logger, GameSessionCac
     {
         try
         {
-
-            // TODO - move AddUserToSession functionality here to a local function and use this in the switch cause
             var result = gameType switch
             {
                 GameType.Spin => await cache.AddUserToSession<SpinSession>(key, userId),
