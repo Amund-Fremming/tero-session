@@ -1,6 +1,6 @@
-using tero_session.src.Core;
-using tero_session.src.Features.Quiz;
-using tero_session.src.Features.Spin;
+using tero.session.src.Core;
+using tero.session.src.Features.Quiz;
+using tero.session.src.Features.Spin;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;

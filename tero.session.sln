@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # 
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tero-session", "tero-session.csproj", "{947C648C-7334-414C-9212-B8D92C610F1A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tero.session", "tero.session.csproj", "{947C648C-7334-414C-9212-B8D92C610F1A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

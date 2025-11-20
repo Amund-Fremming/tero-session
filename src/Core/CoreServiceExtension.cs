@@ -1,4 +1,4 @@
-namespace tero_session.src.Core;
+namespace tero.session.src.Core;
 
 public static class CoreServiceExtension
 {

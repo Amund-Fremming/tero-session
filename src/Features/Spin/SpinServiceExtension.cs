@@ -1,4 +1,4 @@
-namespace tero_session.src.Features.Spin;
+namespace tero.session.src.Features.Spin;
 
 public static class SpinServiceExtension
 {

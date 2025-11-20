@@ -1,1 +1,1 @@
-# tero-session
+# tero.session

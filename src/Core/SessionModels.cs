@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace tero_session.src.Core;
+namespace tero.session.src.Core;
 
 public interface IJoinableSession
 {

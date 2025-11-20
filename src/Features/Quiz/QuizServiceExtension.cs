@@ -1,4 +1,4 @@
-namespace tero_session.src.Features.Quiz;
+namespace tero.session.src.Features.Quiz;
 
 public static class QuizServiceExtension
 {

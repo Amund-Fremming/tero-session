@@ -1,7 +1,7 @@
 using Newtonsoft.Json;
-using tero_session.src.Core;
+using tero.session.src.Core;
 
-namespace tero_session.src.Features.Spin;
+namespace tero.session.src.Features.Spin;
 
 public class SpinSession : IJoinableSession
 {

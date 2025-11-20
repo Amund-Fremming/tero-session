@@ -4,7 +4,7 @@
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <RootNamespace>tero_session</RootNamespace>
+        <RootNamespace>tero.session</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

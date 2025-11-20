@@ -3,10 +3,10 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.ObjectPool;
-using tero_session.src.Features.Quiz;
-using tero_session.src.Features.Spin;
+using tero.session.src.Features.Quiz;
+using tero.session.src.Features.Spin;
 
-namespace tero_session.src.Core;
+namespace tero.session.src.Core;
 
 [ApiController]
 [Route("session")]
@@ -20,7 +20,7 @@ public class SessionController(ILogger<SessionController> logger, GameSessionCac
             var result = gameType switch
             {
                 GameType.Spin => await cache.Insert<SpinSession>(key, request.Value),
-                GameType.Quiz=> await cache.Insert<QuizSession>(key, request.Value),
+                GameType.Quiz => await cache.Insert<QuizSession>(key, request.Value),
                 _ => new InvalidOperationException("Game type not supported")
             };
 
@@ -56,7 +56,7 @@ public class SessionController(ILogger<SessionController> logger, GameSessionCac
                 GameType.Spin => await cache.AddUserToSession<SpinSession>(key, userId),
                 _ => new InvalidOperationException("Game type not supported")
             };
- 
+
             if (result.IsErr())
             {
                 return StatusCode(500, result.Err());

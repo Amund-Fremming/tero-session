@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Caching.Hybrid;
 
-namespace tero_session.src.Core;
+namespace tero.session.src.Core;
 
 public class GameSessionCache(HybridCache cache, ILogger<GameSessionCache> logger)
 {
