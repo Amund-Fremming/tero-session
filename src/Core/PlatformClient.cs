@@ -27,7 +27,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
         }
     }
 
-    public async Task<Result<bool, Exception>> FreeGameKey()
+    public async Task<Result<bool, Exception>> FreeGameKey(string key)
     {
         try
         {
@@ -45,4 +45,23 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
             return error;
         }
     }
+
+    public async Task<Result<bool, Exception>> CreateSyslog(SystemLogRequest request)
+    {
+        try
+        {
+            var result = await auth0Client.GetToken();
+            if (result.IsErr())
+            {
+                return result.Err();
+            }
+            // TODO
+            return true;
+        }
+        catch (Exception error)
+        {
+            logger.LogError(error, "Error");
+            return error;
+        }
+    } 
 }

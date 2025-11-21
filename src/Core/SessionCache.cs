@@ -84,10 +84,32 @@ public class GameSessionCache(HybridCache cache, ILogger<GameSessionCache> logge
             }
 
             var session = result.Unwrap();
-            session.AddToSession(userId);
+            session.AddUser(userId);
 
             await cache.SetAsync(key, session);
             return true;
+        }
+        catch (Exception error)
+        {
+            logger.LogError(error, "Error updating value in cache with key: {Key}", key);
+            return error;
+        }
+    }
+
+    public async Task<Result<T, Exception>> Remove<T>(string key) 
+    {
+        try
+        {
+            var result = await GetOrErr<T>(key);
+            if (result.IsErr())
+            {
+                return new Exception("Failed to get session");
+            }
+
+            var session = result.Unwrap();
+            await cache.RemoveAsync(key);
+
+            return session;
         }
         catch (Exception error)
         {

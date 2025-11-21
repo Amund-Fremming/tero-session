@@ -1,5 +1,12 @@
 using Newtonsoft.Json;
 
+namespace tero.session.src.Core;
+
+public sealed record SystemLogRequest
+{
+    public string? Description {get; set; }
+}
+
 public sealed record M2MTokenResponse
 {
     [JsonProperty("access_token")]

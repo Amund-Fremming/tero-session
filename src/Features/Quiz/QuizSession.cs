@@ -15,9 +15,6 @@ public class QuizSession
     public string Name { get; private set; } = string.Empty;
     public string? Description { get; private set; }
 
-    [JsonProperty("state")]
-    public QuizGameState State { get; private set; }
-
     [JsonProperty("category")]
     public GameCategory Category { get; private set; }
 
