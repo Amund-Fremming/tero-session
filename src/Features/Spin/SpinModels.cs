@@ -22,5 +22,9 @@ public class SpinGamePlayer
 public enum SpinGameState
 {
     Initialized,
-    Started
+    Closed,
+    RoundStarted,
+    Spinning,
+    RoundFinished,
+    Finished,
 }

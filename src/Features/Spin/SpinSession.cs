@@ -1,3 +1,4 @@
+using Microsoft.Extensions.ObjectPool;
 using Newtonsoft.Json;
 using tero.session.src.Core;
 
@@ -21,7 +22,7 @@ public class SpinSession : IJoinableSession
     public string? Description { get; private set; }
 
     [JsonProperty("state")]
-    public SpinGameState State{ get; private set; }
+    public SpinGameState State { get; private set; }
 
     [JsonProperty("category")]
     public GameCategory Category { get; private set; }
@@ -43,45 +44,106 @@ public class SpinSession : IJoinableSession
 
     private SpinSession() { }
 
-    public void AddUser(Guid userId)
+    public void RemoveUser(Guid userId)
     {
+        Players = [.. Players.Where(p => p.UserId != userId)];
+    }
+
+    public bool AddUser(Guid userId)
+    {
+        var exists = Players.Any(p => p.UserId == userId);
+        if (exists)
+        {
+            return false;
+        }
+
         var user = SpinGamePlayer.Create(userId);
         Players.Add(user);
+        return true;
     }
 
     public IEnumerable<Guid> SelectRoundPlayers()
     {
-        // TODO
-        return null;
+        if (Players.Count == 0)
+        {
+            return [];
+        }
+
+        var rnd = new Random();
+        var playersMap = Players.ToDictionary(p => p.UserId, p => p);
+        var r = rnd.NextDouble();
+
+        var i = 0;
+        var selected = new List<SpinGamePlayer>();
+        while (selected.Count < Players.Count)
+        {
+            if (i == Players.Count)
+            {
+                r = rnd.NextDouble();
+                i = 0;
+                continue;
+            }
+
+            var player = Players[i];
+            var playerWeight = 1 - player.TimesChosen / Iterations;
+            if (playerWeight > r)
+            {
+                selected.Add(player);
+            }
+            i++;
+        }
+
+        foreach (var player in selected)
+        {
+            player.IncTimesChosen();
+        }
+
+        return selected.Select(p => p.UserId).AsEnumerable();
     }
 
-    public void IncrementPlayersChosen(IEnumerable<Guid> chosen)
+    /// Returns the round challenge
+    public string NextRound()
     {
-        // TODO
-    }
-
-    public void NextRound()
-    {
+        // Add check for if its more rounds or not
         // Do state check so this cannot be ran before
         // Return state
         // TODO
+        return "";
     }
 
-    public void AddRound(string round)
+    public bool StartSpin()
     {
-        Rounds.Add(round); 
+        return false;
+    }
+
+    public bool AddRound(string round)
+    {
+        if (State == SpinGameState.Closed)
+        {
+            return false;
+        }
+
+        Rounds.Add(round);
         Iterations++;
-    } 
+        return true;
+    }
 
     public int IterationsCount() => Iterations;
     public int PlayersCount() => Players.Count;
 
     public SpinSession Start()
     {
+        State = SpinGameState.Closed;
         Players.Shuffle();
         Rounds.Shuffle();
         return this;
     }
 
     // TODO - implement core logic
+    /*
+        Add current iteraion
+        add host
+        add Update host / remove old
+        
+    */
 }

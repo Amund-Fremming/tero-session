@@ -10,7 +10,7 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
     private readonly HttpClient _client = httpClientFactory.CreateClient(nameof(Auth0Client));
     private readonly Auth0Options _options = options.Value;
     private readonly object _lock = new();
-    private CachedToken _cachedToken = new();
+    private readonly CachedToken _cachedToken = new();
 
     private async Task<Result<M2MTokenResponse, Exception>> FetchM2MToken()
     {

@@ -84,7 +84,11 @@ public class GameSessionCache(HybridCache cache, ILogger<GameSessionCache> logge
             }
 
             var session = result.Unwrap();
-            session.AddUser(userId);
+            var success = session.AddUser(userId);
+            if (!success)
+            {
+                logger.LogWarning("User is already added to the session");
+            }
 
             await cache.SetAsync(key, session);
             return true;
@@ -96,7 +100,7 @@ public class GameSessionCache(HybridCache cache, ILogger<GameSessionCache> logge
         }
     }
 
-    public async Task<Result<T, Exception>> Remove<T>(string key) 
+    public async Task<Result<T, Exception>> Remove<T>(string key)
     {
         try
         {
