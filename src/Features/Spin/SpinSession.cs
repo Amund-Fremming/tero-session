@@ -1,6 +1,7 @@
 using Microsoft.Extensions.ObjectPool;
 using Newtonsoft.Json;
 using tero.session.src.Core;
+using tero.session.src.Core.Spin;
 
 namespace tero.session.src.Features.Spin;
 
@@ -30,6 +31,9 @@ public class SpinSession : IJoinableSession
     [JsonProperty("iterations")]
     public int Iterations { get; private set; }
 
+    [JsonProperty("current_iteration")]
+    public int CurrentIteration { get; private set; }
+
     [JsonProperty("times_played")]
     public int TimesPlayed { get; private set; }
 
@@ -40,65 +44,59 @@ public class SpinSession : IJoinableSession
     public List<string> Rounds { get; private set; } = [];
 
     [JsonProperty("players")]
-    public List<SpinGamePlayer> Players { get; private set; } = [];
+    public Dictionary<Guid, int> Users { get; private set; } = [];
 
     private SpinSession() { }
 
     public void RemoveUser(Guid userId)
     {
-        Players = [.. Players.Where(p => p.UserId != userId)];
+        Users.Remove(userId);
     }
 
     public bool AddUser(Guid userId)
     {
-        var exists = Players.Any(p => p.UserId == userId);
+        var exists = Users.ContainsKey(userId);
         if (exists)
         {
             return false;
         }
 
-        var user = SpinGamePlayer.Create(userId);
-        Players.Add(user);
+        Users.Add(userId, 0);
         return true;
     }
 
-    public IEnumerable<Guid> SelectRoundPlayers()
+    public IEnumerable<Guid> GetSpinResult()
     {
-        if (Players.Count == 0)
+        if (Users.Count == 0)
         {
             return [];
         }
 
         var rnd = new Random();
-        var playersMap = Players.ToDictionary(p => p.UserId, p => p);
         var r = rnd.NextDouble();
 
         var i = 0;
-        var selected = new List<SpinGamePlayer>();
-        while (selected.Count < Players.Count)
+        var selected = new List<Guid>(Users.Count / 2);
+        while (selected.Count < Users.Count)
         {
-            if (i == Players.Count)
+            if (i == Users.Count)
             {
                 r = rnd.NextDouble();
                 i = 0;
                 continue;
             }
 
-            var player = Players[i];
-            var playerWeight = 1 - player.TimesChosen / Iterations;
+            var (userId, timesChosen)= Users.ElementAt(i);
+            var playerWeight = 1 - timesChosen / Iterations;
             if (playerWeight > r)
             {
-                selected.Add(player);
+                selected.Add(userId);
+                Users[userId] = timesChosen++;
             }
             i++;
         }
 
-        foreach (var player in selected)
-        {
-            player.IncTimesChosen();
-        }
-
-        return selected.Select(p => p.UserId).AsEnumerable();
+        return selected.ToList().Shuffle();
     }
 
     /// Returns the round challenge
@@ -129,12 +127,12 @@ public class SpinSession : IJoinableSession
     }
 
     public int IterationsCount() => Iterations;
-    public int PlayersCount() => Players.Count;
+    public int PlayersCount() => Users.Count;
 
     public SpinSession Start()
     {
+        CurrentIteration = 0;
         State = SpinGameState.Closed;
-        Players.Shuffle();
         Rounds.Shuffle();
         return this;
     }
