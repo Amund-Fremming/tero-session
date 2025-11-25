@@ -8,7 +8,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
     private readonly HttpClient _client = httpClientFactory.CreateClient(nameof(PlatformClient));
     private readonly PlatformOptions _options = options.Value;
 
-    public async Task<Result<bool, Exception>> PersistGame()
+    public async Task<Result<Exception>> PersistGame()
     {
         try
         {
@@ -18,7 +18,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
                 return result.Err();
             }
             // TODO
-            return true;
+            return Result<Exception>.Ok();
         }
         catch (Exception error)
         {
@@ -27,7 +27,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
         }
     }
 
-    public async Task<Result<bool, Exception>> FreeGameKey(string key)
+    public async Task<Result<Exception>> FreeGameKey(string key)
     {
         try
         {
@@ -37,7 +37,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
                 return result.Err();
             }
             // TODO
-            return true;
+            return Result<Exception>.Ok();
         }
         catch (Exception error)
         {
@@ -46,7 +46,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
         }
     }
 
-    public async Task<Result<bool, Exception>> CreateSyslog(SystemLogRequest request)
+    public async Task<Result<Exception>> CreateSyslog(SystemLogRequest request)
     {
         try
         {
@@ -56,7 +56,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
                 return result.Err();
             }
             // TODO
-            return true;
+            return Result<Exception>.Ok();
         }
         catch (Exception error)
         {

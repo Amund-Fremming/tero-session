@@ -123,6 +123,27 @@ public sealed record Result<T, E>
     }
 }
 
+public sealed record Result<E>
+{
+    private E? Error { get; set; }
+
+    private Result(E? error)
+    {
+        Error = error;
+    }
+
+    public static Result<E> Ok() => new(default!);
+
+    public static Result<E> Err(E error) => new(error);
+
+    public static implicit operator Result<E>(E error) => new(error);
+
+    public E Err() => Error!;
+
+    public bool IsErr() => Error is not null;
+    public bool IsOk() => Error is null;
+}
+
 public sealed record Option<T>(T Data)
 {
     public static Option<T> Some(T data) => new(data);
