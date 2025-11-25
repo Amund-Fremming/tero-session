@@ -59,12 +59,12 @@ public class GameSessionCache(HybridCache cache, ILogger<GameSessionCache> logge
         }
     }
 
-    public async Task<Result<bool, Exception>> Update<T>(string key, T value)
+    public async Task<Result<Exception>> Update<T>(string key, T value)
     {
         try
         {
             await cache.SetAsync(key, value);
-            return true;
+            return Result<Exception>.Ok();
         }
         catch (Exception error)
         {
@@ -73,7 +73,7 @@ public class GameSessionCache(HybridCache cache, ILogger<GameSessionCache> logge
         }
     }
 
-    public async Task<Result<bool, Exception>> AddUserToSession<T>(string key, Guid userId) where T : IJoinableSession
+    public async Task<Result<Exception>> AddUserToSession<T>(string key, Guid userId) where T : IJoinableSession
     {
         try
         {
@@ -91,7 +91,7 @@ public class GameSessionCache(HybridCache cache, ILogger<GameSessionCache> logge
             }
 
             await cache.SetAsync(key, session);
-            return true;
+            return Result<Exception>.Ok();
         }
         catch (Exception error)
         {
