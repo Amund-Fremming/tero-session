@@ -46,7 +46,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
         }
     }
 
-    public async Task<Result<Exception>> CreateSyslog(SystemLogRequest request)
+    public async Task<Result<Exception>> CreateSystemLog(SystemLogRequest request)
     {
         try
         {

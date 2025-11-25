@@ -151,4 +151,14 @@ public sealed record Option<T>(T Data)
 
     public bool IsNone() => Data is null;
     public bool IsSome() => Data is not null;
+
+    public T Unwrap()
+    {
+        if (Data is null)
+        {
+            throw new Exception("Cannot unwrap a empty option");
+        }
+
+        return Data;
+    }
 }

@@ -48,24 +48,41 @@ public class SpinSession : IJoinableSession
 
     private SpinSession() { }
 
-    public void RemoveUser(Guid userId)
+    public List<Guid> GetUserIds() => Users.Select(u => u.Key).ToList().Shuffle();
+    public int UsersCount() => Users.Count;
+
+    /// Returns a Option<Guid> if a new host is set
+    public Option<Guid> RemoveUser(Guid userId)
     {
+        if(userId == HostId) {
+            var hostId = SetNewHost();
+            return Option<Guid>.Some(hostId);
+        }
+
         Users.Remove(userId);
+        return Option<Guid>.None;
     }
 
-    public bool AddUser(Guid userId)
+    /// Returns a Option<Guid> if the user added becomes the host
+    public Option<Guid> AddUser(Guid userId)
     {
+        if(Users.Count == 0 || (Users.Count == 1 && Users.ContainsKey(userId))) {
+            HostId = userId;
+            return Option<Guid>.Some(userId);
+        }
+
         var exists = Users.ContainsKey(userId);
         if (exists)
         {
-            return false;
+            return Option<Guid>.None;
         }
 
         Users.Add(userId, 0);
-        return true;
+        return Option<Guid>.None;
     }
 
-    public IEnumerable<Guid> GetSpinResult()
+    /// Returns the users chosen this round
+    public HashSet<Guid> GetSpinResult(int numPlayers)
     {
         if (Users.Count == 0)
         {
@@ -75,9 +92,9 @@ public class SpinSession : IJoinableSession
         var rnd = new Random();
         var r = rnd.NextDouble();
 
-        var i = 0;
-        var selected = new List<Guid>(Users.Count / 2);
-        while (selected.Count < Users.Count)
+        int i = 0;
+        var selected = new HashSet<Guid>(numPlayers);
+        while (selected.Count < numPlayers)
         {
             if (i == Users.Count)
             {
@@ -96,27 +113,27 @@ public class SpinSession : IJoinableSession
             i++;
         }
 
-        return selected.ToList().Shuffle();
+        return selected;
     }
 
-    /// Returns the round challenge
-    public string NextRound()
+    /// Returns a Ok<string> with the new round
+    /// Returns a Err<SpinGameState> if the game is finished
+    public Result<string, SpinGameState> NextRound()
     {
-        // Add check for if its more rounds or not
-        // Do state check so this cannot be ran before
-        // Return state
-        // TODO
-        return "";
-    }
+        if (CurrentIteration == Iterations) {
+            State = SpinGameState.Finished;
+            return SpinGameState.Finished;
+        }
 
-    public bool StartSpin()
-    {
-        return false;
+        var next = Rounds.ElementAt(CurrentIteration);
+        State = SpinGameState.Initialized;
+        CurrentIteration++;
+        return next;
     }
 
     public bool AddRound(string round)
     {
-        if (State == SpinGameState.Closed)
+        if (State != SpinGameState.Initialized)
         {
             return false;
         }
@@ -126,22 +143,17 @@ public class SpinSession : IJoinableSession
         return true;
     }
 
-    public int IterationsCount() => Iterations;
-    public int PlayersCount() => Users.Count;
 
-    public SpinSession Start()
+    public void Start()
     {
         CurrentIteration = 0;
-        State = SpinGameState.Closed;
+        State = SpinGameState.RoundInitialized;
         Rounds.Shuffle();
-        return this;
     }
 
-    // TODO - implement core logic
-    /*
-        Add current iteraion
-        add host
-        add Update host / remove old
-        
-    */
+    private Guid SetNewHost() {
+        var (userId, _) = Users.ElementAt(0);
+        HostId = userId;
+        return userId;
+    }
 }
