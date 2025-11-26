@@ -10,7 +10,7 @@ public static class CoreServiceExtension
         services.AddScoped<PlatformClient>();
         services.AddScoped<Auth0Client>();
 
-        services.AddSingleton<GameSessionCache>();
+        services.AddSingleton<HubConnectionCache>();
 
         return services;
     }

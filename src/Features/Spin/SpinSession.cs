@@ -54,7 +54,8 @@ public class SpinSession : IJoinableSession
     /// Returns a Option<Guid> if a new host is set
     public Option<Guid> RemoveUser(Guid userId)
     {
-        if(userId == HostId) {
+        if (userId == HostId)
+        {
             var hostId = SetNewHost();
             return Option<Guid>.Some(hostId);
         }
@@ -66,8 +67,10 @@ public class SpinSession : IJoinableSession
     /// Returns a Option<Guid> if the user added becomes the host
     public Option<Guid> AddUser(Guid userId)
     {
-        if(Users.Count == 0 || (Users.Count == 1 && Users.ContainsKey(userId))) {
+        if (Users.Count == 0 || (Users.Count == 1 && Users.ContainsKey(userId)))
+        {
             HostId = userId;
+            Users.Add(userId, 0);
             return Option<Guid>.Some(userId);
         }
 
@@ -103,7 +106,7 @@ public class SpinSession : IJoinableSession
                 continue;
             }
 
-            var (userId, timesChosen)= Users.ElementAt(i);
+            var (userId, timesChosen) = Users.ElementAt(i);
             var playerWeight = 1 - timesChosen / Iterations;
             if (playerWeight > r)
             {
@@ -120,13 +123,14 @@ public class SpinSession : IJoinableSession
     /// Returns a Err<SpinGameState> if the game is finished
     public Result<string, SpinGameState> NextRound()
     {
-        if (CurrentIteration == Iterations) {
+        if (CurrentIteration == Iterations)
+        {
             State = SpinGameState.Finished;
             return SpinGameState.Finished;
         }
 
         var next = Rounds.ElementAt(CurrentIteration);
-        State = SpinGameState.Initialized;
+        State = SpinGameState.RoundInitialized;
         CurrentIteration++;
         return next;
     }
@@ -144,14 +148,19 @@ public class SpinSession : IJoinableSession
     }
 
 
-    public void Start()
+    public string Start()
     {
         CurrentIteration = 0;
         State = SpinGameState.RoundInitialized;
         Rounds.Shuffle();
+
+        var next = Rounds.ElementAt(0);
+        CurrentIteration++;
+        return next;
     }
 
-    private Guid SetNewHost() {
+    private Guid SetNewHost()
+    {
         var (userId, _) = Users.ElementAt(0);
         HostId = userId;
         return userId;

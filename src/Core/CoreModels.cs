@@ -1,11 +1,49 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 
 namespace tero.session.src.Core;
 
-public sealed record SystemLogRequest
+public interface IJoinableSession
 {
-    public string? Description {get; set; }
+    public Option<Guid> AddUser(Guid userId);
 }
+
+public record GameSessionRequest
+{
+    [JsonPropertyName("payload")]
+    public JsonElement Value { get; init; }
+}
+
+
+public class Auth0Options
+{
+    public string BaseUrl { get; set; } = string.Empty;
+    public string Audience { get; set; } = string.Empty;
+    public string ClientId { get; set; } = string.Empty;
+    public string ClientSecret { get; set; } = string.Empty;
+}
+
+public class PlatformOptions
+{
+    public string BaseUrl { get; set; } = string.Empty;
+}
+
+public sealed record HubInfo
+{
+    public string GameKey { get; set; }
+    public Guid UserId { get; set; }
+    public DateTime ExpiresAt { get; set; }
+
+    public HubInfo(string gameKey, Guid userId)
+    {
+        GameKey = gameKey;
+        UserId = userId;
+        ExpiresAt = DateTime.Now.AddHours(1); // TODO - longer ttl? update it when user does stuff?
+    }
+}
+
+public sealed record SystemLogRequest(string? Description);
 
 public sealed record M2MTokenResponse
 {

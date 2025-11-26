@@ -1,8 +1,5 @@
-using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.ObjectPool;
 using tero.session.src.Features.Quiz;
 using tero.session.src.Features.Spin;
 
@@ -17,23 +14,27 @@ public class SessionController(ILogger<SessionController> logger, GameSessionCac
     {
         try
         {
-            var result = gameType switch
-            {
-                GameType.Spin => await cache.Insert<SpinSession>(key, request.Value),
-                GameType.Quiz => await cache.Insert<QuizSession>(key, request.Value),
-                _ => new InvalidOperationException("Game type not supported")
-            };
 
-            if (result.IsErr())
+            switch (gameType)
             {
-                return StatusCode(500, result.Err());
+                case GameType.Spin:
+                    var session = JsonSerializer.Deserialize<SpinSession>(request.Value);
+                    await cache.Insert<SpinSession>(key, session);
+                    break;
+                case GameType.Quiz:
+                    var session = JsonSerializer.Deserialize<QuizSession>(request.Value);
+                    await cache.Insert<QuizSession>(key, session);
+                    break;
             }
+
+            /* return StatusCode(500, result.Err());
 
             var keyExists = result.Unwrap();
             if (keyExists)
             {
                 return Conflict("Key already exists");
             }
+            */
 
             return Ok("Game initialized");
         }
