@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace tero.session.src.Core;
 
-public class HubConnectionCache
+public class HubConnectionCache<T>
 {
     private readonly ConcurrentDictionary<string, HubInfo> _map = [];
 

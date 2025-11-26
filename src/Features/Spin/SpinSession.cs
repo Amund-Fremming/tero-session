@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.ObjectPool;
 using Newtonsoft.Json;
 using tero.session.src.Core;
@@ -51,7 +53,6 @@ public class SpinSession : IJoinableSession
     public List<Guid> GetUserIds() => Users.Select(u => u.Key).ToList().Shuffle();
     public int UsersCount() => Users.Count;
 
-    /// Returns a Option<Guid> if a new host is set
     public Option<Guid> RemoveUser(Guid userId)
     {
         if (userId == HostId)
@@ -64,7 +65,6 @@ public class SpinSession : IJoinableSession
         return Option<Guid>.None;
     }
 
-    /// Returns a Option<Guid> if the user added becomes the host
     public Option<Guid> AddUser(Guid userId)
     {
         if (Users.Count == 0 || (Users.Count == 1 && Users.ContainsKey(userId)))
@@ -84,7 +84,6 @@ public class SpinSession : IJoinableSession
         return Option<Guid>.None;
     }
 
-    /// Returns the users chosen this round
     public HashSet<Guid> GetSpinResult(int numPlayers)
     {
         if (Users.Count == 0)
@@ -119,44 +118,40 @@ public class SpinSession : IJoinableSession
         return selected;
     }
 
-    /// Returns a Ok<string> with the new round
-    /// Returns a Err<SpinGameState> if the game is finished
-    public Result<string, SpinGameState> NextRound()
+    public Result<SpinSession, Error> IncrementRound()
     {
         if (CurrentIteration == Iterations)
         {
             State = SpinGameState.Finished;
-            return SpinGameState.Finished;
+            return Error.GameFinished;
         }
 
-        var next = Rounds.ElementAt(CurrentIteration);
         State = SpinGameState.RoundInitialized;
         CurrentIteration++;
-        return next;
+        return this;
     }
 
-    public bool AddRound(string round)
+    public string GetRoundText() => Rounds.ElementAt(CurrentIteration);
+
+    public Result<SpinSession, Error> AddRound(string round)
     {
         if (State != SpinGameState.Initialized)
         {
-            return false;
+            return Error.GameClosed;
         }
 
         Rounds.Add(round);
         Iterations++;
-        return true;
+        return this;
     }
 
 
-    public string Start()
+    public SpinSession Start()
     {
         CurrentIteration = 0;
         State = SpinGameState.RoundInitialized;
         Rounds.Shuffle();
-
-        var next = Rounds.ElementAt(0);
-        CurrentIteration++;
-        return next;
+        return this;
     }
 
     private Guid SetNewHost()

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration.UserSecrets;
 using Newtonsoft.Json;
 using tero.session.src.Core;
 
@@ -10,6 +11,9 @@ public class QuizSession
 
     [JsonProperty("quiz_id")]
     public Guid QuizId { get; private set; }
+
+    [JsonProperty("host_id")]
+    public Guid HostId { get; private set; }
 
     [JsonProperty("host_id")]
     public string Name { get; private set; } = string.Empty;
@@ -32,10 +36,11 @@ public class QuizSession
 
     private QuizSession() { }
 
-    public void AddQuesiton(string question)
+    public QuizSession AddQuesiton(string question)
     {
         Questions.Add(question);
         Iterations++;
+        return this;
     }
 
     public QuizSession Start()

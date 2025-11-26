@@ -1,16 +1,11 @@
 using System.Net.Sockets;
+using System.Threading.Tasks.Dataflow;
 using Microsoft.AspNetCore.SignalR;
 using tero.session.src.Core;
-using tero.session.src.Core.Spin;
 
 namespace tero.session.src.Features.Spin;
 
-// Solution to better reading:
-// More effective to just make all upserts return a readonly copy of the object so i can broadcast whatever
-// Sessions might need some more functionslity to get this, and make operations only return error or ok not acual data
-// Simplifies Upsert alot also
-
-public class SpinHub(ILogger<SpinHub> logger, HubConnectionCache connectionMap, GameSessionCache cache) : Hub
+public class SpinHub(ILogger<SpinHub> logger, HubConnectionCache<SpinSession> connectionMap, GameSessionCache cache) : Hub
 {
     public override async Task OnConnectedAsync()
     {
@@ -30,23 +25,24 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionCache connectionMap, 
         }
 
         var hubInfo = option.Unwrap();
-        var result = await cache.Upsert<SpinSession, Option<Guid>>(hubInfo.GameKey, session =>
-        {
-            return session.RemoveUser(hubInfo.UserId);
-        });
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, hubInfo.GameKey);
+
+        var result = await cache.Upsert<SpinSession, Option<Guid>>(
+            hubInfo.GameKey,
+            session => session.RemoveUser(hubInfo.UserId)
+        );
 
         if (result.IsErr())
         {
-            logger.LogCritical("Requested SpinSession does not exist");
-            await base.OnDisconnectedAsync(exception);
+            await CoreUtils.Broadcast(Clients, result.Err());
             return;
         }
 
         var removeOption = result.Unwrap();
         if (removeOption.IsSome())
         {
-            var newHost = option.Unwrap();
-            await Clients.GroupExcept(hubInfo.GameKey, Context.ConnectionId).SendAsync("host", newHost);
+            var newHostId = removeOption.Unwrap();
+            await Clients.GroupExcept(hubInfo.GameKey, Context.ConnectionId).SendAsync("host", newHostId);
         }
 
         await base.OnDisconnectedAsync(exception);
@@ -54,14 +50,14 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionCache connectionMap, 
 
     public async Task AddUser(string key, Guid userId)
     {
-        var result = await cache.Upsert<SpinSession, Option<Guid>>(key, session =>
-        {
-            return session.AddUser(userId);
-        });
+        var result = await cache.Upsert<SpinSession, Option<Guid>>(
+            key,
+            session => session.AddUser(userId)
+        );
 
         if (result.IsErr())
         {
-            await Clients.Caller.SendAsync("error", "Spillet finnes ikke");
+            await CoreUtils.Broadcast(Clients, result.Err());
             return;
         }
 
@@ -87,46 +83,32 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionCache connectionMap, 
 
     public async Task AddRound(string key, string round)
     {
-        var result = await cache.Upsert<SpinSession, bool>(key, session =>
-        {
-            return session.AddRound(round);
-        });
+        var result = await cache.Upsert<SpinSession>(
+            key,
+            session => session.AddRound(round)
+        );
 
         if (result.IsErr())
         {
-            logger.LogCritical("Requested SpinSession does not exist");
-            await Clients.Caller.SendAsync("error", "Spillet finnes ikke");
+            await CoreUtils.Broadcast(Clients, result.Err());
             return;
         }
 
-        var success = result.Unwrap();
-        if (!success)
-        {
-            await Clients.Caller.SendAsync("error", "Kan ikke legge til mer, spillet har startet");
-            return;
-        }
-
-        var sessionReadOnly = await cache.Read<SpinSession>(key);
-        if (sessionReadOnly.IsSome())
-        {
-            var session = sessionReadOnly.Unwrap();
-            await Clients.Group(key).SendAsync("iterations", session.Iterations);
-        }
-
+        var session = result.Unwrap();
+        await Clients.Group(key).SendAsync("iterations", session.Iterations);
         logger.LogDebug("User added a round to SpinSession");
     }
 
     public async Task StartGame(string key)
     {
-        var result = await cache.Upsert<SpinSession, string>(key, session =>
-        {
-            return session.Start();
-        });
+        var result = await cache.Upsert<SpinSession>(
+            key,
+            session => session.Start()
+        );
 
         if (result.IsErr())
         {
-            logger.LogCritical("Requested SpinSession does not exist");
-            await Clients.Caller.SendAsync("error", "Spillet finnes ikke");
+            await CoreUtils.Broadcast(Clients, result.Err());
             return;
         }
 
@@ -136,21 +118,17 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionCache connectionMap, 
     }
     public async Task StartRound(string key)
     {
-        var result = await cache.Upsert<SpinSession, string>(key, session =>
-        {
-            return session.Start();
-        });
-
+        var result = await cache.Upsert<SpinSession>(key, session => session.Start());
         if (result.IsErr())
         {
-            logger.LogCritical("Requested SpinSession does not exist");
-            await Clients.Caller.SendAsync("error", "Spillet finnes ikke");
+            await CoreUtils.Broadcast(Clients, result.Err());
             return;
         }
 
-        var round = result.Unwrap();
+        var session = result.Unwrap();
 
         var userIds = session.GetUserIds();
+        // TODO - this does not increment players chosen in the cache
         var selected = session.GetSpinResult(2);
 
         var rng = new Random();
@@ -178,59 +156,23 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionCache connectionMap, 
 
     public async Task NextRound(string key)
     {
-        var outerResult = await cache.Upsert<SpinSession, Result<string, SpinGameState>>(key, session =>
-        {
-            return session.NextRound();
-        });
+        var result = await cache.Upsert<SpinSession>(
+            key,
+            session => session.IncrementRound()
+        );
 
-        if (outerResult.IsErr())
-        {
-            logger.LogCritical("Requested SpinSession does not exist");
-            await Clients.Caller.SendAsync("error", "Spillet finnes ikke");
-            return;
-        }
-
-        var innerResult = outerResult.Unwrap();
-        if (innerResult.IsErr())
-        {
-            var state = innerResult.Err();
-            await Clients.Group(key).SendAsync("state", state);
-            return;
-        }
-
-        var round = innerResult.Unwrap();
-        await Clients.Caller.SendAsync("round", round);
-        await Clients.Groups(key).SendAsync("state", state);
-
-        logger.LogDebug("SpinSession round initialized");
-    }
-
-
-    public async Task StartGame(string key)
-    {
-        var result = await cache.GetOrErr<SpinSession>(key);
         if (result.IsErr())
         {
-            logger.LogCritical(result.Err(), "Failed to get SpinSession");
-            await Clients.Caller.SendAsync("error", "Spillet finnes ikke");
+            await CoreUtils.Broadcast(Clients, result.Err());
             return;
         }
 
-        var session = result.Unwrap();
-        session.Start();
-        var roundResult = session.NextRound();
-        if (roundResult.IsErr())
-        {
-            logger.LogInformation("SpinSession is finished");
-            await Clients.Group(key).SendAsync("state", roundResult.Err());
-            return;
-        }
+        var updatedSession = result.Unwrap();
+        var round = updatedSession.GetRoundText();
 
-        var round = roundResult.Unwrap();
-        var state = session.State;
-
-        await Clients.Groups(key).SendAsync("state", state);
         await Clients.Caller.SendAsync("round", round);
+        await Clients.Group(key).SendAsync("state", updatedSession.State);
+
         logger.LogDebug("SpinSession round initialized");
     }
 }

@@ -4,6 +4,15 @@ using Newtonsoft.Json;
 
 namespace tero.session.src.Core;
 
+public enum Error
+{
+    NotGameHost,
+    GameClosed,
+    GameFinished,
+    GameNotFound,
+    System
+}
+
 public interface IJoinableSession
 {
     public Option<Guid> AddUser(Guid userId);

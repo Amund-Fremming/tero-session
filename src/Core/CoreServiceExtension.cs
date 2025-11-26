@@ -1,3 +1,6 @@
+using tero.session.src.Features.Quiz;
+using tero.session.src.Features.Spin;
+
 namespace tero.session.src.Core;
 
 public static class CoreServiceExtension
@@ -10,7 +13,8 @@ public static class CoreServiceExtension
         services.AddScoped<PlatformClient>();
         services.AddScoped<Auth0Client>();
 
-        services.AddSingleton<HubConnectionCache>();
+        services.AddSingleton<HubConnectionCache<SpinSession>>();
+        services.AddSingleton<HubConnectionCache<QuizSession>>();
 
         return services;
     }
