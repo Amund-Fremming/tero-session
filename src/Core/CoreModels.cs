@@ -6,6 +6,7 @@ namespace tero.session.src.Core;
 
 public enum Error
 {
+    KeyExists,
     NotGameHost,
     GameClosed,
     GameFinished,
@@ -179,7 +180,7 @@ public sealed record Result<E>
         Error = error;
     }
 
-    public static Result<E> Ok() => new(default!);
+    public static Result<E> Ok => new(default!);
 
     public static Result<E> Err(E error) => new(error);
 

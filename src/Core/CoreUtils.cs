@@ -1,4 +1,6 @@
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using tero.session.src.Features.Spin;
 
@@ -6,6 +8,27 @@ namespace tero.session.src.Core;
 
 public static class CoreUtils
 {
+    public static async Task<(int, string)> InsertPayload<TSession>(GameSessionCache cache, string key, JsonElement value)
+    {
+        var spinSession = JsonSerializer.Deserialize<TSession>(value);
+        if (spinSession is null)
+        {
+            return (400, "Invalid payload");
+        }
+
+        var spinResult = await cache.Insert(key, spinSession);
+        if (spinResult.IsErr())
+        {
+            return spinResult.Err() switch
+            {
+                Error.KeyExists => (409, "Game key in use"),
+                _ => (500, "Internal server error")
+            };
+        }
+
+        return (200, "Game initialized");
+    }
+
     public static async Task Broadcast(IHubCallerClients clients, Error error)
     {
         switch (error)

@@ -18,7 +18,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
                 return result.Err();
             }
             // TODO
-            return Result<Exception>.Ok();
+            return Result<Exception>.Ok;
         }
         catch (Exception error)
         {
@@ -37,7 +37,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
                 return result.Err();
             }
             // TODO
-            return Result<Exception>.Ok();
+            return Result<Exception>.Ok;
         }
         catch (Exception error)
         {
@@ -56,7 +56,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
                 return result.Err();
             }
             // TODO
-            return Result<Exception>.Ok();
+            return Result<Exception>.Ok;
         }
         catch (Exception error)
         {

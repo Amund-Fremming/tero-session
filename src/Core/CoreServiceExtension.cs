@@ -13,8 +13,11 @@ public static class CoreServiceExtension
         services.AddScoped<PlatformClient>();
         services.AddScoped<Auth0Client>();
 
+        services.AddSingleton<GameSessionCache>();
         services.AddSingleton<HubConnectionCache<SpinSession>>();
         services.AddSingleton<HubConnectionCache<QuizSession>>();
+
+        services.AddHostedService<CacheCleanupJob>();
 
         return services;
     }

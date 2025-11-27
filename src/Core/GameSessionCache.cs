@@ -8,17 +8,27 @@ public class GameSessionCache(ILogger<GameSessionCache> logger, HybridCache cach
 {
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = [];
 
-    public async Task<bool> Insert<TSession, TResult>(string key, TSession session)
+    public async Task<Result<Error>> Insert<TSession>(string key, TSession session)
     {
         try
         {
+            var result = await cache.GetOrCreateAsync(
+                key,
+                cancel => ValueTask.FromResult(default(TSession?))
+            );
+
+            if (result is not null)
+            {
+                return Error.KeyExists;
+            }
+
             await cache.SetAsync(key, session);
-            return true;
+            return Result<Error>.Ok;
         }
         catch (Exception e)
         {
             logger.LogError(e, "Failed to insert into session cache");
-            return false;
+            return Error.System;
         }
     }
 

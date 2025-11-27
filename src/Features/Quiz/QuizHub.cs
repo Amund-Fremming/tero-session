@@ -9,6 +9,9 @@ public class QuizHub(GameSessionCache cache, HubConnectionCache<QuizSession> con
     {
         await base.OnConnectedAsync();
         logger.LogDebug("Client connected to QuizSession");
+
+        // TODO - remove
+        platformClient.GetType();
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
