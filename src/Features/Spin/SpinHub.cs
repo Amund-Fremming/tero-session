@@ -5,7 +5,7 @@ using tero.session.src.Core;
 
 namespace tero.session.src.Features.Spin;
 
-public class SpinHub(ILogger<SpinHub> logger, HubConnectionCache<SpinSession> connectionMap, GameSessionCache cache) : Hub
+public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> manager, GameSessionCache<SpinSession> cache) : Hub
 {
     public override async Task OnConnectedAsync()
     {
@@ -15,7 +15,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionCache<SpinSession> co
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        var option = connectionMap.Get(Context.ConnectionId);
+        var option = manager.Get(Context.ConnectionId);
         if (option.IsNone())
         {
             // TODO - system log
@@ -27,7 +27,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionCache<SpinSession> co
         var hubInfo = option.Unwrap();
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, hubInfo.GameKey);
 
-        var result = await cache.Upsert<SpinSession, Option<Guid>>(
+        var result = await cache.Upsert(
             hubInfo.GameKey,
             session => session.RemoveUser(hubInfo.UserId)
         );
@@ -50,7 +50,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionCache<SpinSession> co
 
     public async Task AddUser(string key, Guid userId)
     {
-        var result = await cache.Upsert<SpinSession, Option<Guid>>(
+        var result = await cache.Upsert(
             key,
             session => session.AddUser(userId)
         );
@@ -68,7 +68,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionCache<SpinSession> co
             await Clients.Group(key).SendAsync("host", newHost);
         }
 
-        var success = connectionMap.Insert(Context.ConnectionId, new HubInfo(key, userId));
+        var success = manager.Insert(Context.ConnectionId, new HubInfo(key, userId));
         if (!success)
         {
             // TODO - log system log
@@ -83,7 +83,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionCache<SpinSession> co
 
     public async Task AddRound(string key, string round)
     {
-        var result = await cache.Upsert<SpinSession>(
+        var result = await cache.Upsert(
             key,
             session => session.AddRound(round)
         );
@@ -156,7 +156,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionCache<SpinSession> co
 
     public async Task NextRound(string key)
     {
-        var result = await cache.Upsert<SpinSession>(
+        var result = await cache.Upsert(
             key,
             session => session.IncrementRound()
         );

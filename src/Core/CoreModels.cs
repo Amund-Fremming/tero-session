@@ -4,6 +4,28 @@ using Newtonsoft.Json;
 
 namespace tero.session.src.Core;
 
+public sealed record CachedSession<T>
+{
+    private T Session { get; set; } = default!;
+    private DateTime ExpiresAt {get; set;} = DateTime.Now;
+
+    public CachedSession(T session)
+    {
+        Session = session;
+        ExpiresAt = DateTime.Now.AddMinutes(10);
+    }
+
+    public bool HasExpired() => ExpiresAt < DateTime.Now;
+
+    public T GetSession() => Session;
+    
+    public void SetSession(T session)
+    {
+        ExpiresAt = DateTime.Now;
+        Session = session;
+    }
+}
+
 public enum Error
 {
     KeyExists,
@@ -51,6 +73,8 @@ public sealed record HubInfo
         UserId = userId;
         ExpiresAt = DateTime.Now.AddHours(1); // TODO - longer ttl? update it when user does stuff?
     }
+
+    public bool HasExpired() => ExpiresAt < DateTime.Now;
 }
 
 public sealed record SystemLogRequest(string? Description);

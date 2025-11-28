@@ -3,7 +3,7 @@ using tero.session.src.Core;
 
 namespace tero.session.src.Features.Quiz;
 
-public class QuizHub(GameSessionCache cache, HubConnectionCache<QuizSession> connectionMap, ILogger<QuizHub> logger, PlatformClient platformClient) : Hub
+public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<QuizSession> manager, ILogger<QuizHub> logger, PlatformClient platformClient) : Hub
 {
     public override async Task OnConnectedAsync()
     {
@@ -16,7 +16,7 @@ public class QuizHub(GameSessionCache cache, HubConnectionCache<QuizSession> con
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        var option = connectionMap.Get(Context.ConnectionId);
+        var option = manager.Get(Context.ConnectionId);
         if (option.IsNone())
         {
             // TODO - system log

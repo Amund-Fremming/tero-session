@@ -1,28 +1,24 @@
 using System.Collections.Concurrent;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.Extensions.Caching.Hybrid;
 
 namespace tero.session.src.Core;
 
-public class GameSessionCache(ILogger<GameSessionCache> logger, HybridCache cache)
+public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logger)
 {
+    private readonly ConcurrentDictionary<string, CachedSession<TSession>> _cache = [];
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = [];
 
-    public async Task<Result<Error>> Insert<TSession>(string key, TSession session)
+    public ConcurrentDictionary<string, CachedSession<TSession>> GetCopy() => new(_cache);
+
+    public async Task<Result<Error>> Insert(string key, TSession session)
     {
         try
         {
-            var result = await cache.GetOrCreateAsync(
-                key,
-                cancel => ValueTask.FromResult(default(TSession?))
-            );
-
-            if (result is not null)
+            var entry = new CachedSession<TSession>(session);
+            if(!_cache.TryAdd(key, entry))
             {
                 return Error.KeyExists;
             }
 
-            await cache.SetAsync(key, session);
             return Result<Error>.Ok;
         }
         catch (Exception e)
@@ -32,26 +28,22 @@ public class GameSessionCache(ILogger<GameSessionCache> logger, HybridCache cach
         }
     }
 
-    public async Task<Result<TSession, Error>> Upsert<TSession>(string key, Func<TSession, Result<TSession, Error>> func)
+    public async Task<Result<TSession, Error>> Upsert(string key, Func<TSession, Result<TSession, Error>> func)
     {
         var sem = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
         await sem.WaitAsync();
 
         try
         {
-            var session = await cache.GetOrCreateAsync(
-                key,
-                cancel => ValueTask.FromResult(default(TSession?))
-            );
-
-            if (session is null)
+            if(!_cache.TryGetValue(key, out var entry))
             {
-                logger.LogError("Tried upsering non exising key for session");
                 return Error.GameNotFound;
             }
 
+            var session = entry.GetSession();
             var result = func(session);
-            await cache.SetAsync(key, session);
+            entry.SetSession(session);
+            
             return result;
         }
         catch (Exception e)
@@ -65,26 +57,22 @@ public class GameSessionCache(ILogger<GameSessionCache> logger, HybridCache cach
         }
     }
 
-    public async Task<Result<TSession, Error>> Upsert<TSession>(string key, Func<TSession, TSession> func)
+    public async Task<Result<TSession, Error>> Upsert(string key, Func<TSession, TSession> func)
     {
         var sem = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
         await sem.WaitAsync();
 
         try
         {
-            var session = await cache.GetOrCreateAsync(
-                key,
-                cancel => ValueTask.FromResult(default(TSession?))
-            );
-
-            if (session is null)
+            if(!_cache.TryGetValue(key, out var entry))
             {
-                logger.LogError("Tried upsering non exising key for session");
                 return Error.GameNotFound;
             }
 
+            var session = entry.GetSession();
             var result = func(session);
-            await cache.SetAsync(key, session);
+            entry.SetSession(session);
+
             return result;
         }
         catch (Exception e)
@@ -98,26 +86,22 @@ public class GameSessionCache(ILogger<GameSessionCache> logger, HybridCache cach
         }
     }
 
-    public async Task<Result<TResult, Error>> Upsert<TSession, TResult>(string key, Func<TSession, TResult> func)
+    public async Task<Result<TResult, Error>> Upsert<TResult>(string key, Func<TSession, TResult> func)
     {
         var sem = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
         await sem.WaitAsync();
 
         try
         {
-            var session = await cache.GetOrCreateAsync(
-                key,
-                cancel => ValueTask.FromResult(default(TSession?))
-            );
-
-            if (session is null)
+            if (!_cache.TryGetValue(key, out var entry))
             {
-                logger.LogError("Tried upsering non exising key for session");
                 return Error.GameNotFound;
             }
 
+            var session = entry.GetSession();
             var result = func(session);
-            await cache.SetAsync(key, session);
+            entry.SetSession(session);
+
             return Result<TResult, Error>.Ok(result);
         }
         catch (Exception e)
@@ -135,7 +119,11 @@ public class GameSessionCache(ILogger<GameSessionCache> logger, HybridCache cach
     {
         try
         {
-            await cache.RemoveAsync(key);
+            if(!_cache.TryRemove(key, out _))
+            {
+                logger.LogWarning("Tried removing non exising session from the cache");
+            }
+
             if (_locks.Remove(key, out var sem))
             {
                 sem.Dispose();

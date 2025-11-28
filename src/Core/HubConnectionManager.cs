@@ -3,13 +3,15 @@ using System.Runtime.CompilerServices;
 
 namespace tero.session.src.Core;
 
-public class HubConnectionCache<T>
+public class HubConnectionManager<T>
 {
-    private readonly ConcurrentDictionary<string, HubInfo> _map = [];
+    private readonly ConcurrentDictionary<string, HubInfo> _manager = [];
+
+    public ConcurrentDictionary<string, HubInfo> GetCopy() => new(_manager);
 
     public Option<HubInfo> Get(string connectionId)
     {
-        if (!_map.TryGetValue(connectionId, out var value))
+        if (!_manager.TryGetValue(connectionId, out var value))
         {
             return Option<HubInfo>.None;
         }
@@ -23,11 +25,11 @@ public class HubConnectionCache<T>
     }
 
     public bool Insert(string connectionId, HubInfo value)
-        => _map.TryAdd(connectionId, value);
+        => _manager.TryAdd(connectionId, value);
 
     public Option<HubInfo> Remove(string connectionId)
     {
-        if (!_map.TryRemove(connectionId, out var value))
+        if (!_manager.TryRemove(connectionId, out var value))
         {
             return Option<HubInfo>.None;
         }
