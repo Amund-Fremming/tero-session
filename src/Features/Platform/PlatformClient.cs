@@ -1,7 +1,8 @@
-using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Options;
+using tero.session.src.Core;
+using tero.session.src.Features.Auth;
 
-namespace tero.session.src.Core;
+namespace tero.session.src.Features.Platform;
 
 public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<PlatformClient> logger, Auth0Client auth0Client, IOptions<PlatformOptions> options)
 {
@@ -17,6 +18,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
             {
                 return result.Err();
             }
+
             // TODO
             return Result<Exception>.Ok;
         }

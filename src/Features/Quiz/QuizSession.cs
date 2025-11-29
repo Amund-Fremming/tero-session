@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Configuration.UserSecrets;
 using Newtonsoft.Json;
 using tero.session.src.Core;
 

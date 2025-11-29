@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.SignalR;
 using tero.session.src.Features.Quiz;
 using tero.session.src.Features.Spin;
@@ -19,14 +18,6 @@ public class CacheCleanupJob(
     {
         logger.LogInformation("Cache cleanup service started");
 
-        // TODO - remove
-        spinCache.GetType();
-        quizCache.GetType();
-        spinManager.GetType();
-        quizManager.GetType();
-        spinHub.GetType();
-        quizHub.GetType();
-
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -34,29 +25,28 @@ public class CacheCleanupJob(
                 await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
                 logger.LogDebug("Running cache cleanup");
 
-                _ = Task.Run(async () => await CleanupCache(spinHub, spinCache, CancellationToken.None));
-                _ = Task.Run(async () => await CleanupCache(quizHub, quizCache, CancellationToken.None));
+                _ = Task.Run(async () => await CleanupCache(spinHub, spinCache));
+                _ = Task.Run(async () => await CleanupCache(quizHub, quizCache));
 
                 _ = Task.Run(async () => await CleanupManager(spinHub, spinManager, spinCache));
-                // TODO - make own cleanup for non player games to only remove from group
-                //_ = Task.Run(async () => await CleanupManager(quizHub, quizManager));
+                _ = Task.Run(async () => await CleanupManager(quizHub, quizManager));
 
             }
-            catch (OperationCanceledException e)
+            catch (OperationCanceledException error)
             {
-                logger.LogError(e, "Backgorund cleanup was cancelled");
+                logger.LogError(error, "Backgorund cleanup was cancelled");
                 break;
             }
-            catch (Exception e)
+            catch (Exception error)
             {
-                logger.LogError(e, "Error in cache cleanup");
+                logger.LogError(error, "Error in cache cleanup");
             }
         }
 
         logger.LogInformation("Cache cleanup service stopped");
     }
 
-    private async Task CleanupCache<TSession, THub>(IHubContext<THub> hub, GameSessionCache<TSession> cache, CancellationToken stoppingToken) where THub : Hub
+    private async Task CleanupCache<TSession, THub>(IHubContext<THub> hub, GameSessionCache<TSession> cache) where THub : Hub
     {
         foreach (var (key, value) in cache.GetCopy())
         {
@@ -70,20 +60,18 @@ public class CacheCleanupJob(
                 }
 
                 // TODO - make frontend call disconnect on this action
-                // Fire and forget
                 _ = hub.Clients.Groups(key).SendAsync("disconnect", "Spillet har blitt avsluttet");
             }
         }
     }
 
-    private async Task CleanupManager<THub, TSession, TCleanup>(IHubContext<THub> hub,HubConnectionManager<TSession> manager, GameSessionCache<TCleanup> cache) where TCleanup : ICleanuppableSession<TSession> where THub : Hub
+    private async Task CleanupManager<THub, TSession, TCleanup>(IHubContext<THub> hub, HubConnectionManager<TSession> manager, GameSessionCache<TCleanup> cache) where TCleanup : ICleanuppable<TSession> where THub : Hub
     {
         foreach (var (connId, info) in manager.GetCopy())
         {
             if (info.HasExpired())
             {
                 // Fire and forget here?
-                /////////
                 var result = await cache.Upsert(info.GameKey, session => session.Cleanup(info.UserId));
                 if (result.IsErr())
                 {
@@ -91,8 +79,19 @@ public class CacheCleanupJob(
                     logger.LogError($"Failed to cleanup session manager {result.Err()}");
                 }
 
-                await hub.Groups.RemoveFromGroupAsync(connId, info.GameKey);
-                    ////
+                _ = hub.Groups.RemoveFromGroupAsync(connId, info.GameKey);
+                _ = manager.Remove(connId);
+            }
+        }
+    }
+
+    private async Task CleanupManager<THub, TSession>(IHubContext<THub> hub,HubConnectionManager<TSession> manager) where THub : Hub
+    {
+        foreach (var (connId, info) in manager.GetCopy())
+        {
+            if (info.HasExpired())
+            {
+                _ = hub.Groups.RemoveFromGroupAsync(connId, info.GameKey);
             }
         }
     }

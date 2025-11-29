@@ -1,14 +1,15 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using tero.session.src.Core;
 using tero.session.src.Features.Quiz;
 using tero.session.src.Features.Spin;
 
-namespace tero.session.src.Core;
+namespace tero.session.src.Features.Platform;
 
 [ApiController]
 [Route("session")]
-public class SessionController(
-    ILogger<SessionController> logger,
+public class PlatformController(
+    ILogger<PlatformController> logger,
     GameSessionCache<SpinSession> spinCache,
     GameSessionCache<QuizSession> quizCache
 ) : ControllerBase
@@ -30,9 +31,9 @@ public class SessionController(
 
             return StatusCode(statusCode, message);
         }
-        catch (Exception e)
+        catch (Exception error)
         {
-            logger.LogError(e, "Error");
+            logger.LogError(error, "Error");
             return StatusCode(500, "Internal server error");
         }
     }

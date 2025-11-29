@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 
 namespace tero.session.src.Core;
@@ -36,34 +35,12 @@ public enum Error
     System
 }
 
-public interface IJoinableSession
-{
-    public Option<Guid> AddUser(Guid userId);
-}
-
-public interface ICleanuppableSession<TSession>
-{
-    public TSession Cleanup(Guid userId);
-}
-
-public record GameSessionRequest
-{
-    [JsonPropertyName("payload")]
-    public JsonElement Value { get; init; }
-}
 
 
-public class Auth0Options
+public class CacheTTLOptions
 {
-    public string BaseUrl { get; set; } = string.Empty;
-    public string Audience { get; set; } = string.Empty;
-    public string ClientId { get; set; } = string.Empty;
-    public string ClientSecret { get; set; } = string.Empty;
-}
-
-public class PlatformOptions
-{
-    public string BaseUrl { get; set; } = string.Empty;
+    public int SessionMinuttes {get; set;} 
+    public int ManagerMinuttes {get; set;} 
 }
 
 public sealed record HubInfo
@@ -84,36 +61,6 @@ public sealed record HubInfo
     public void SetTtl(TimeSpan ttl) => ExpiresAt = DateTime.Now.Add(ttl);
 }
 
-public sealed record SystemLogRequest(string? Description);
-
-public sealed record M2MTokenResponse
-{
-    [JsonProperty("access_token")]
-    public string AccessToken { get; set; } = string.Empty;
-
-    [JsonProperty("token_type")]
-    public string TokenType { get; set; } = string.Empty;
-
-    [JsonProperty("expires_in")]
-    public int ExpiresIn { get; set; }
-}
-
-public sealed record M2MTokenRequest
-{
-
-    [JsonProperty("client_id")]
-    public string ClientId { get; set; } = string.Empty;
-
-    [JsonProperty("client_secret")]
-    public string ClientSecret { get; set; } = string.Empty;
-
-    [JsonProperty("audience")]
-    public string Audience { get; set; } = string.Empty;
-
-    [JsonProperty("grant_type")]
-    public string GrantType { get; set; } = string.Empty;
-
-}
 
 public enum GameCategory
 {
@@ -135,38 +82,6 @@ public enum GameType
     Quiz
 }
 
-public record CachedToken
-{
-    public string Token { get; set; }
-    private DateTime ExpiresAt { get; set; }
-
-    public CachedToken()
-    {
-        Token = string.Empty;
-        ExpiresAt = DateTime.MinValue;
-    }
-
-    public void SetToken(string token)
-    {
-        Token = token;
-    }
-
-    public void SetExpiry(int seconds)
-    {
-        var expiry = DateTime.Now.AddSeconds(seconds);
-        ExpiresAt = expiry;
-    }
-
-    public bool IsValid()
-    {
-        if (ExpiresAt < DateTime.Now || Token == string.Empty)
-        {
-            return false;
-        }
-
-        return true;
-    }
-}
 
 
 public sealed record Result<T, E>

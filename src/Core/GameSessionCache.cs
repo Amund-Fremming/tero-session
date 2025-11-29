@@ -2,9 +2,9 @@ using System.Collections.Concurrent;
 
 namespace tero.session.src.Core;
 
-public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logger)
+public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logger, CacheTTLOptions options)
 {
-    private readonly TimeSpan _ttl =  TimeSpan.FromMinutes(10);
+    private readonly TimeSpan _ttl =  TimeSpan.FromMinutes(options.SessionMinuttes);
     private readonly ConcurrentDictionary<string, CachedSession<TSession>> _cache = [];
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = [];
 
@@ -22,9 +22,9 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
 
             return Result<Error>.Ok;
         }
-        catch (Exception e)
+        catch (Exception error)
         {
-            logger.LogError(e, "Failed to insert into session cache");
+            logger.LogError(error, "Failed to insert into session cache");
             return Error.System;
         }
     }
@@ -47,9 +47,9 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
             
             return result;
         }
-        catch (Exception e)
+        catch (Exception error)
         {
-            logger.LogError(e, "Failed to upsert into session cache");
+            logger.LogError(error, "Failed to upsert into session cache");
             return Error.System;
         }
         finally
@@ -76,9 +76,9 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
 
             return Result<TResult, Error>.Ok(result);
         }
-        catch (Exception e)
+        catch (Exception error)
         {
-            logger.LogError(e, "Failed to upsert into session cache");
+            logger.LogError(error, "Failed to upsert into session cache");
             return Error.System;
         }
         finally
@@ -103,9 +103,9 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
 
             return true;
         }
-        catch (Exception e)
+        catch (Exception error)
         {
-            logger.LogError(e, "Failed to remove session from cache");
+            logger.LogError(error, "Failed to remove session from cache");
             return false;
         }
     }

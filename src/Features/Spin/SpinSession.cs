@@ -1,14 +1,9 @@
-using System.Runtime.CompilerServices;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.ObjectPool;
 using Newtonsoft.Json;
 using tero.session.src.Core;
-using tero.session.src.Core.Spin;
 
 namespace tero.session.src.Features.Spin;
 
-public class SpinSession : IJoinableSession, ICleanuppableSession<SpinSession>
+public class SpinSession : IJoinableSession, ICleanuppable<SpinSession>
 {
     [JsonProperty("spin_id")]
     public Guid SpinId { get; private set; }
@@ -49,7 +44,7 @@ public class SpinSession : IJoinableSession, ICleanuppableSession<SpinSession>
     [JsonProperty("players")]
     public Dictionary<Guid, int> Users { get; private set; } = [];
 
-    private SpinSession() { }
+    protected SpinSession() { }
 
     public List<Guid> GetUserIds() => Users.Select(u => u.Key).ToList().Shuffle();
     public int UsersCount() => Users.Count;

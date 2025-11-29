@@ -1,4 +1,4 @@
-namespace tero.session.src.Core.Spin;
+namespace tero.session.src.Features.Spin;
 
 public enum SpinGameState
 {

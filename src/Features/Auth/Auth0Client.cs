@@ -1,9 +1,9 @@
 using System.Text;
 using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using tero.session.src.Core;
 
-namespace tero.session.src.Core;
+namespace tero.session.src.Features.Auth;
 
 public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Client> logger, IOptions<Auth0Options> options)
 {

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using tero.session.src.Core;
+using tero.session.src.Features.Platform;
 
 namespace tero.session.src.Features.Quiz;
 

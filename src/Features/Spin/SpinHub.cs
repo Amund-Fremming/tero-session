@@ -101,7 +101,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
 
     public async Task StartGame(string key)
     {
-        var result = await cache.Upsert<SpinSession>(
+        var result = await cache.Upsert(
             key,
             session => session.Start()
         );
@@ -118,7 +118,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
     }
     public async Task StartRound(string key)
     {
-        var result = await cache.Upsert<SpinSession>(key, session => session.Start());
+        var result = await cache.Upsert(key, session => session.Start());
         if (result.IsErr())
         {
             await CoreUtils.Broadcast(Clients, result.Err());

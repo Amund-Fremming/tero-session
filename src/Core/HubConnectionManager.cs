@@ -1,12 +1,10 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
 namespace tero.session.src.Core;
 
-public class HubConnectionManager<T>
+public class HubConnectionManager<T>(CacheTTLOptions options)
 {
-    private readonly TimeSpan _ttl = TimeSpan.FromMinutes(30);
+    private readonly TimeSpan _ttl = TimeSpan.FromMinutes(options.ManagerMinuttes);
     private readonly ConcurrentDictionary<string, HubInfo> _manager = [];
 
     public ConcurrentDictionary<string, HubInfo> GetCopy() => new(_manager);
