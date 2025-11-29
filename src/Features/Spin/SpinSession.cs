@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.ObjectPool;
 using Newtonsoft.Json;
@@ -7,7 +8,7 @@ using tero.session.src.Core.Spin;
 
 namespace tero.session.src.Features.Spin;
 
-public class SpinSession : IJoinableSession
+public class SpinSession : IJoinableSession, ICleanuppableSession<SpinSession>
 {
     [JsonProperty("spin_id")]
     public Guid SpinId { get; private set; }
@@ -159,5 +160,11 @@ public class SpinSession : IJoinableSession
         var (userId, _) = Users.ElementAt(0);
         HostId = userId;
         return userId;
+    }
+
+    public SpinSession Cleanup(Guid userId)
+    {
+        Users.Remove(userId);
+        return this;
     }
 }

@@ -9,10 +9,10 @@ public sealed record CachedSession<T>
     private T Session { get; set; } = default!;
     private DateTime ExpiresAt {get; set;} = DateTime.Now;
 
-    public CachedSession(T session)
+    public CachedSession(T session, TimeSpan ttl)
     {
         Session = session;
-        ExpiresAt = DateTime.Now.AddMinutes(10);
+        ExpiresAt = DateTime.Now.Add(ttl);
     }
 
     public bool HasExpired() => ExpiresAt < DateTime.Now;
@@ -39,6 +39,11 @@ public enum Error
 public interface IJoinableSession
 {
     public Option<Guid> AddUser(Guid userId);
+}
+
+public interface ICleanuppableSession<TSession>
+{
+    public TSession Cleanup(Guid userId);
 }
 
 public record GameSessionRequest
@@ -71,10 +76,12 @@ public sealed record HubInfo
     {
         GameKey = gameKey;
         UserId = userId;
-        ExpiresAt = DateTime.Now.AddHours(1); // TODO - longer ttl? update it when user does stuff?
+        ExpiresAt = DateTime.Now;
     }
 
     public bool HasExpired() => ExpiresAt < DateTime.Now;
+
+    public void SetTtl(TimeSpan ttl) => ExpiresAt = DateTime.Now.Add(ttl);
 }
 
 public sealed record SystemLogRequest(string? Description);

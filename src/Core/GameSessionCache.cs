@@ -4,6 +4,7 @@ namespace tero.session.src.Core;
 
 public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logger)
 {
+    private readonly TimeSpan _ttl =  TimeSpan.FromMinutes(10);
     private readonly ConcurrentDictionary<string, CachedSession<TSession>> _cache = [];
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = [];
 
@@ -13,7 +14,7 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
     {
         try
         {
-            var entry = new CachedSession<TSession>(session);
+            var entry = new CachedSession<TSession>(session, _ttl);
             if(!_cache.TryAdd(key, entry))
             {
                 return Error.KeyExists;
@@ -44,35 +45,6 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
             var result = func(session);
             entry.SetSession(session);
             
-            return result;
-        }
-        catch (Exception e)
-        {
-            logger.LogError(e, "Failed to upsert into session cache");
-            return Error.System;
-        }
-        finally
-        {
-            sem.Release();
-        }
-    }
-
-    public async Task<Result<TSession, Error>> Upsert(string key, Func<TSession, TSession> func)
-    {
-        var sem = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
-        await sem.WaitAsync();
-
-        try
-        {
-            if(!_cache.TryGetValue(key, out var entry))
-            {
-                return Error.GameNotFound;
-            }
-
-            var session = entry.GetSession();
-            var result = func(session);
-            entry.SetSession(session);
-
             return result;
         }
         catch (Exception e)

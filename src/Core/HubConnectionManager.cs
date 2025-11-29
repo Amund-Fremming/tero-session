@@ -1,10 +1,12 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace tero.session.src.Core;
 
 public class HubConnectionManager<T>
 {
+    private readonly TimeSpan _ttl = TimeSpan.FromMinutes(30);
     private readonly ConcurrentDictionary<string, HubInfo> _manager = [];
 
     public ConcurrentDictionary<string, HubInfo> GetCopy() => new(_manager);
@@ -25,7 +27,10 @@ public class HubConnectionManager<T>
     }
 
     public bool Insert(string connectionId, HubInfo value)
-        => _manager.TryAdd(connectionId, value);
+    {
+        value.SetTtl(_ttl);
+        return _manager.TryAdd(connectionId, value);
+    }
 
     public Option<HubInfo> Remove(string connectionId)
     {

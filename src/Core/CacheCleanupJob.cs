@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.SignalR;
 using tero.session.src.Features.Quiz;
 using tero.session.src.Features.Spin;
@@ -33,11 +34,12 @@ public class CacheCleanupJob(
                 await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
                 logger.LogDebug("Running cache cleanup");
 
-                _ = Task.Run(async () => await CleanupCache(spinHub, spinCache, stoppingToken));
+                _ = Task.Run(async () => await CleanupCache(spinHub, spinCache, CancellationToken.None));
                 _ = Task.Run(async () => await CleanupCache(quizHub, quizCache, CancellationToken.None));
 
-                _ = Task.Run(async () => await CleanupManager(spinManager));
-                _ = Task.Run(async () => await CleanupManager(quizManager));
+                _ = Task.Run(async () => await CleanupManager(spinHub, spinManager, spinCache));
+                // TODO - make own cleanup for non player games to only remove from group
+                //_ = Task.Run(async () => await CleanupManager(quizHub, quizManager));
 
             }
             catch (OperationCanceledException e)
@@ -74,14 +76,23 @@ public class CacheCleanupJob(
         }
     }
 
-    private async Task CleanupManager<TSession>(HubConnectionManager<TSession> manager)
+    private async Task CleanupManager<THub, TSession, TCleanup>(IHubContext<THub> hub,HubConnectionManager<TSession> manager, GameSessionCache<TCleanup> cache) where TCleanup : ICleanuppableSession<TSession> where THub : Hub
     {
-        foreach (var (key, value) in manager.GetCopy())
+        foreach (var (connId, info) in manager.GetCopy())
         {
-            if (value.HasExpired())
+            if (info.HasExpired())
             {
-                // Remove from group
-                // Remove from game
+                // Fire and forget here?
+                /////////
+                var result = await cache.Upsert(info.GameKey, session => session.Cleanup(info.UserId));
+                if (result.IsErr())
+                {
+                    // Syslog
+                    logger.LogError($"Failed to cleanup session manager {result.Err()}");
+                }
+
+                await hub.Groups.RemoveFromGroupAsync(connId, info.GameKey);
+                    ////
             }
         }
     }
