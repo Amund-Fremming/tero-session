@@ -5,7 +5,7 @@ namespace tero.session.src.Core;
 
 public static class CoreUtils
 {
-    public static async Task<(int, string)> InsertPayload<TSession>(GameSessionCache<TSession> cache, string key, JsonElement value)
+    public static (int, string) InsertPayload<TSession>(GameSessionCache<TSession> cache, string key, JsonElement value)
     {
         var spinSession = JsonSerializer.Deserialize<TSession>(value);
         if (spinSession is null)
@@ -13,7 +13,7 @@ public static class CoreUtils
             return (400, "Invalid payload");
         }
 
-        var spinResult = await cache.Insert(key, spinSession);
+        var spinResult = cache.Insert(key, spinSession);
         if (spinResult.IsErr())
         {
             return spinResult.Err() switch

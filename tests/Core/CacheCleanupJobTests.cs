@@ -103,7 +103,7 @@ public class CacheCleanupJobTests
     }
 
     [Fact]
-    public async Task CacheCleanupJob_WithMultipleCaches_ShouldInitialize()
+    public void CacheCleanupJob_WithMultipleCaches_ShouldInitialize()
     {
         // Arrange
         var spinCache = new GameSessionCache<SpinSession>(

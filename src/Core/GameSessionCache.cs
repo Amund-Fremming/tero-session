@@ -10,12 +10,12 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
 
     public ConcurrentDictionary<string, CachedSession<TSession>> GetCopy() => new(_cache);
 
-    public async Task<Result<Error>> Insert(string key, TSession session)
+    public Result<Error> Insert(string key, TSession session)
     {
         try
         {
             var entry = new CachedSession<TSession>(session, _ttl);
-            if(!_cache.TryAdd(key, entry))
+            if (!_cache.TryAdd(key, entry))
             {
                 return Error.KeyExists;
             }
@@ -36,7 +36,7 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
 
         try
         {
-            if(!_cache.TryGetValue(key, out var entry))
+            if (!_cache.TryGetValue(key, out var entry))
             {
                 return Error.GameNotFound;
             }
@@ -44,7 +44,7 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
             var session = entry.GetSession();
             var result = func(session);
             entry.SetSession(session);
-            
+
             return result;
         }
         catch (Exception error)
@@ -89,16 +89,14 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
 
     public async Task<bool> Remove(string key)
     {
+        var sem = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+        await sem.WaitAsync();
+
         try
         {
-            if(!_cache.TryRemove(key, out _))
+            if (!_cache.TryRemove(key, out _))
             {
                 logger.LogWarning("Tried removing non exising session from the cache");
-            }
-
-            if (_locks.Remove(key, out var sem))
-            {
-                sem.Dispose();
             }
 
             return true;
@@ -107,6 +105,15 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
         {
             logger.LogError(error, "Failed to remove session from cache");
             return false;
+        }
+        finally
+        {
+            sem.Release();
+
+            if (_locks.Remove(key, out var removedSem))
+            {
+                removedSem.Dispose();
+            }
         }
     }
 }

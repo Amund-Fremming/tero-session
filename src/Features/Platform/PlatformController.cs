@@ -15,17 +15,17 @@ public class PlatformController(
 ) : ControllerBase
 {
     [HttpPost("initiate/{gameType}/{key}")]
-    public async Task<IActionResult> InitiateGameSession(GameType gameType, string key, [FromBody] JsonElement value)
+    public IActionResult InitiateGameSession(GameType gameType, string key, [FromBody] JsonElement value)
     {
         try
         {
             // TODO - remove
-            logger.LogDebug($"Recieved request for {gameType} with key: {key}");
+            logger.LogDebug("Recieved request for {GameType} with key: {string}", gameType, key);
 
             var (statusCode, message) = gameType switch
             {
-                GameType.Spin => await CoreUtils.InsertPayload(spinCache, key, value),
-                GameType.Quiz=> await CoreUtils.InsertPayload(quizCache, key, value),
+                GameType.Spin => CoreUtils.InsertPayload(spinCache, key, value),
+                GameType.Quiz=> CoreUtils.InsertPayload(quizCache, key, value),
                 _ => (400, "Game type not supported")
             };
 

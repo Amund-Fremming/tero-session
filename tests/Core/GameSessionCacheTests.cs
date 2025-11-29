@@ -18,14 +18,14 @@ public class GameSessionCacheTests
     }
 
     [Fact]
-    public async Task Insert_WithValidKey_ShouldReturnOk()
+    public void Insert_WithValidKey_ShouldReturnOk()
     {
         // Arrange
         var key = "test-key";
         var session = new TestSession { Value = "test" };
 
         // Act
-        var result = await _cache.Insert(key, session);
+        var result = _cache.Insert(key, session);
 
         // Assert  
         if (result.IsErr())
@@ -36,7 +36,7 @@ public class GameSessionCacheTests
     }
 
     [Fact]
-    public async Task Insert_WithDuplicateKey_ShouldReturnKeyExistsError()
+    public void Insert_WithDuplicateKey_ShouldReturnKeyExistsError()
     {
         // Arrange
         var key = "duplicate-key";
@@ -44,8 +44,8 @@ public class GameSessionCacheTests
         var session2 = new TestSession { Value = "test2" };
 
         // Act
-        await _cache.Insert(key, session1);
-        var result = await _cache.Insert(key, session2);
+        _cache.Insert(key, session1);
+        var result = _cache.Insert(key, session2);
 
         // Assert
         Assert.True(result.IsErr());
@@ -53,12 +53,12 @@ public class GameSessionCacheTests
     }
 
     [Fact]
-    public async Task GetCopy_ShouldReturnCopyOfCache()
+    public void GetCopy_ShouldReturnCopyOfCache()
     {
         // Arrange
         var key = "test-key";
         var session = new TestSession { Value = "test" };
-        await _cache.Insert(key, session);
+        _cache.Insert(key, session);
 
         // Act
         var copy = _cache.GetCopy();
@@ -74,7 +74,7 @@ public class GameSessionCacheTests
         // Arrange
         var key = "test-key";
         var session = new TestSession { Value = "initial" };
-        await _cache.Insert(key, session);
+        _cache.Insert(key, session);
 
         // Act
         var result = await _cache.Upsert(key, s =>
@@ -113,7 +113,7 @@ public class GameSessionCacheTests
         // Arrange
         var key = "test-key";
         var session = new TestSession { Value = "initial" };
-        await _cache.Insert(key, session);
+        _cache.Insert(key, session);
 
         // Act
         var result = await _cache.Upsert<string>(key, s =>
@@ -147,7 +147,7 @@ public class GameSessionCacheTests
         // Arrange
         var key = "test-key";
         var session = new TestSession { Value = "test" };
-        await _cache.Insert(key, session);
+        _cache.Insert(key, session);
 
         // Act
         var result = await _cache.Remove(key);
@@ -177,7 +177,7 @@ public class GameSessionCacheTests
         // Arrange
         var key = "test-key";
         var session = new TestSession { Value = "0" };
-        await _cache.Insert(key, session);
+        _cache.Insert(key, session);
 
         // Act - Multiple concurrent upserts
         var tasks = Enumerable.Range(1, 10).Select(i =>
@@ -203,7 +203,7 @@ public class GameSessionCacheTests
         // Arrange
         var key = "test-key";
         var session = new TestSession { Value = "test" };
-        await _cache.Insert(key, session);
+         _cache.Insert(key, session);
 
         // Act
         var result = await _cache.Remove(key);
@@ -215,7 +215,7 @@ public class GameSessionCacheTests
         Assert.Empty(copy);
         
         // Subsequent insert with same key should succeed as the entry was removed
-        var insertResult = await _cache.Insert(key, new TestSession { Value = "new" });
+        var insertResult = _cache.Insert(key, new TestSession { Value = "new" });
         Assert.True(insertResult.IsOk());
     }
 }

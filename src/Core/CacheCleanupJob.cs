@@ -29,7 +29,7 @@ public class CacheCleanupJob(
                 _ = Task.Run(async () => await CleanupCache(quizHub, quizCache));
 
                 _ = Task.Run(async () => await CleanupManager(spinHub, spinManager, spinCache));
-                _ = Task.Run(async () => await CleanupManager(quizHub, quizManager));
+                _ = Task.Run(() => CleanupManager(quizHub, quizManager));
 
             }
             catch (OperationCanceledException error)
@@ -85,7 +85,7 @@ public class CacheCleanupJob(
         }
     }
 
-    private async Task CleanupManager<THub, TSession>(IHubContext<THub> hub,HubConnectionManager<TSession> manager) where THub : Hub
+    private void CleanupManager<THub, TSession>(IHubContext<THub> hub,HubConnectionManager<TSession> manager) where THub : Hub
     {
         foreach (var (connId, info) in manager.GetCopy())
         {
