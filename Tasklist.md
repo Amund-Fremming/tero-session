@@ -2,8 +2,11 @@
 
 **First**
 
-- Connect to rust backend to be able to post log and free key
-- Unit tests for caches, and bg cleanup? Just ai generate it
+- [ ] Implement the funcitons in the `PlatformClient.cs` so it can contact my other backend.
+- [ ] Unit tests to do 100% test coverage on my `GameSessionCache.cs` and `HubConnectionManager.cs`, for funcitonality and for cleanup
+- [ ] Unit tests for the cleanup job for `CacheCleanupJob.cs`, use the configs and options to make the tests run fast and validate at the same time.
+
+- [ ] Make sure all function that can throw exception is wrapped and returns reuslt of some kind
 
 **Later**
 
