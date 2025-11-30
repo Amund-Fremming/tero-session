@@ -42,7 +42,12 @@ public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, Ca
         try
         {
             value.SetTtl(_ttl);
-            return _manager.TryAdd(connectionId, value);
+            var added = _manager.TryAdd(connectionId, value);
+            if (!added)
+            {
+                return Error.KeyExists;
+            }
+            return true;
         }
         catch (OverflowException error)
         {

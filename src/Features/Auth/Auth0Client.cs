@@ -30,7 +30,7 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
                 "application/json"
             );
 
-            var response = await _client.PostAsync("/SOME", content);
+            var response = await _client.PostAsync("/oauth/token", content);
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogError("Response from auth0 was unsuccessful");

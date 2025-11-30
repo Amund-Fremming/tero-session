@@ -49,6 +49,12 @@ public class Auth0ClientTests
         var result = await client.GetToken();
 
         // Assert
+        if (result.IsErr())
+        {
+            var error = result.Err();
+            Assert.Fail($"Expected token but got error: {error}");
+        }
+        
         Assert.True(result.IsOk());
         var token = result.Unwrap();
         Assert.NotNull(token);

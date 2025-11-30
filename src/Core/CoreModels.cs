@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace tero.session.src.Core;
 
@@ -27,17 +27,17 @@ public sealed record CachedSession<T>
 
 public enum Error
 {
-    KeyExists = 1,
-    NotGameHost = 2,
-    GameClosed = 3,
-    GameFinished = 4,
-    GameNotFound = 5,
-    System = 6,
-    Json = 7,
-    NullReference = 8,
-    Overflow = 9,
-    Http = 10,
-    Upstream = 11
+    KeyExists = 0,
+    NotGameHost = 1,
+    GameClosed = 2,
+    GameFinished = 3,
+    GameNotFound = 4,
+    System = 5,
+    Json = 6,
+    NullReference = 7,
+    Overflow = 8,
+    Http = 9,
+    Upstream = 10
 }
 
 
@@ -69,15 +69,15 @@ public sealed record HubInfo
 
 public enum GameCategory
 {
-    [JsonProperty("casual")]
+    [JsonPropertyName("casual")]
     Casual,
-    [JsonProperty("random")]
+    [JsonPropertyName("random")]
     Random,
-    [JsonProperty("ladies")]
+    [JsonPropertyName("ladies")]
     Ladies,
-    [JsonProperty("boys")]
+    [JsonPropertyName("boys")]
     Boys,
-    [JsonProperty("default")]
+    [JsonPropertyName("default")]
     Default
 }
 
@@ -109,7 +109,7 @@ public sealed record Result<T, E>
     public static implicit operator Result<T, E>(E error) => new(default!, error);
     public E Err() => Error!;
 
-    public bool IsErr() => Error is not null;
+    public bool IsErr() => Error is not null && (!typeof(E).IsValueType || !EqualityComparer<E?>.Default.Equals(Error, default(E)));
     public bool IsOk() => Data is not null;
     public T Unwrap()
     {

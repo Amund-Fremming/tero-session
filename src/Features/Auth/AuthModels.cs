@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace tero.session.src.Features.Auth;
 
@@ -14,29 +14,29 @@ public class Auth0Options
 
 public sealed record M2MTokenResponse
 {
-    [JsonProperty("access_token")]
+    [JsonPropertyName("access_token")]
     public string AccessToken { get; set; } = string.Empty;
 
-    [JsonProperty("token_type")]
+    [JsonPropertyName("token_type")]
     public string TokenType { get; set; } = string.Empty;
 
-    [JsonProperty("expires_in")]
+    [JsonPropertyName("expires_in")]
     public int ExpiresIn { get; set; }
 }
 
 public sealed record M2MTokenRequest
 {
 
-    [JsonProperty("client_id")]
+    [JsonPropertyName("client_id")]
     public string ClientId { get; set; } = string.Empty;
 
-    [JsonProperty("client_secret")]
+    [JsonPropertyName("client_secret")]
     public string ClientSecret { get; set; } = string.Empty;
 
-    [JsonProperty("audience")]
+    [JsonPropertyName("audience")]
     public string Audience { get; set; } = string.Empty;
 
-    [JsonProperty("grant_type")]
+    [JsonPropertyName("grant_type")]
     public string GrantType { get; set; } = string.Empty;
 
 }

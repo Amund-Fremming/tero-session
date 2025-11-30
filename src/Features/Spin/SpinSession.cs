@@ -1,47 +1,47 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 using tero.session.src.Core;
 
 namespace tero.session.src.Features.Spin;
 
 public class SpinSession : IJoinableSession, ICleanuppable<SpinSession>
 {
-    [JsonProperty("spin_id")]
+    [JsonPropertyName("spin_id")]
     public Guid SpinId { get; private set; }
 
-    [JsonProperty("base_id")]
+    [JsonPropertyName("base_id")]
     public Guid BaseId { get; private set; }
 
-    [JsonProperty("host_id")]
+    [JsonPropertyName("host_id")]
     public Guid HostId { get; private set; }
 
-    [JsonProperty("name")]
+    [JsonPropertyName("name")]
     public string Name { get; private set; } = string.Empty;
 
-    [JsonProperty("description")]
+    [JsonPropertyName("description")]
     public string? Description { get; private set; }
 
-    [JsonProperty("state")]
+    [JsonPropertyName("state")]
     public SpinGameState State { get; private set; }
 
-    [JsonProperty("category")]
+    [JsonPropertyName("category")]
     public GameCategory Category { get; private set; }
 
-    [JsonProperty("iterations")]
+    [JsonPropertyName("iterations")]
     public int Iterations { get; private set; }
 
-    [JsonProperty("current_iteration")]
+    [JsonPropertyName("current_iteration")]
     public int CurrentIteration { get; private set; }
 
-    [JsonProperty("times_played")]
+    [JsonPropertyName("times_played")]
     public int TimesPlayed { get; private set; }
 
-    [JsonProperty("last_played")]
+    [JsonPropertyName("last_played")]
     public DateTime LastPlayed { get; private set; }
 
-    [JsonProperty("rounds")]
+    [JsonPropertyName("rounds")]
     public List<string> Rounds { get; private set; } = [];
 
-    [JsonProperty("players")]
+    [JsonPropertyName("players")]
     public Dictionary<Guid, int> Users { get; private set; } = [];
 
     protected SpinSession() { }

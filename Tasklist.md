@@ -2,7 +2,6 @@
 
 **First**
 
-- [ ] Make sure all function that can throw exception is wrapped and returns reuslt of some kind
 - [ ] Test impl with platform and app
 
 **Later**

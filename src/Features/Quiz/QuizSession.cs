@@ -1,36 +1,36 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 using tero.session.src.Core;
 
 namespace tero.session.src.Features.Quiz;
 
 public class QuizSession
 {
-    [JsonProperty("base_id")]
+    [JsonPropertyName("base_id")]
     public Guid BaseId { get; private set; }
 
-    [JsonProperty("quiz_id")]
+    [JsonPropertyName("quiz_id")]
     public Guid QuizId { get; private set; }
 
-    [JsonProperty("host_id")]
+    [JsonPropertyName("host_id")]
     public Guid HostId { get; private set; }
 
-    [JsonProperty("host_id")]
+    [JsonPropertyName("host_id")]
     public string Name { get; private set; } = string.Empty;
     public string? Description { get; private set; }
 
-    [JsonProperty("category")]
+    [JsonPropertyName("category")]
     public GameCategory Category { get; private set; }
 
-    [JsonProperty("iterations")]
+    [JsonPropertyName("iterations")]
     public int Iterations { get; private set; }
 
-    [JsonProperty("current_iteration")]
+    [JsonPropertyName("current_iteration")]
     public int CurrentIteration { get; private set; }
 
-    [JsonProperty("questions")]
+    [JsonPropertyName("questions")]
     public List<string> Questions { get; private set; } = new();
 
-    [JsonProperty("times_played")]
+    [JsonPropertyName("times_played")]
     public int TimesPlayed { get; private set; }
 
     private QuizSession() { }
