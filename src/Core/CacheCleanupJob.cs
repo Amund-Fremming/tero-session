@@ -17,7 +17,6 @@ public class CacheCleanupJob(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Cache cleanup service started");
-
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -34,12 +33,13 @@ public class CacheCleanupJob(
             }
             catch (OperationCanceledException error)
             {
-                logger.LogError(error, "Backgorund cleanup was cancelled");
+                logger.LogError(error, "Backgorund cleanup failed to cancel");
                 break;
             }
             catch (Exception error)
             {
-                logger.LogError(error, "Error in cache cleanup");
+                // Syslog?
+                logger.LogError(error, "CacheCleanupJob");
             }
         }
 
@@ -67,6 +67,8 @@ public class CacheCleanupJob(
 
     private async Task CleanupManager<THub, TSession, TCleanup>(IHubContext<THub> hub, HubConnectionManager<TSession> manager, GameSessionCache<TCleanup> cache) where TCleanup : ICleanuppable<TSession> where THub : Hub
     {
+        try
+        {
         foreach (var (connId, info) in manager.GetCopy())
         {
             if (info.HasExpired())
@@ -80,19 +82,31 @@ public class CacheCleanupJob(
                 }
 
                 _ = hub.Groups.RemoveFromGroupAsync(connId, info.GameKey);
-                _ = manager.Remove(connId);
+                    _ = manager.Remove(connId);
+                }
             }
+        }
+        catch (Exception error)
+        {
+            // Systlog?
+            logger.LogError(error, "CleanupManager: ICleanuppable");
         }
     }
 
     private void CleanupManager<THub, TSession>(IHubContext<THub> hub,HubConnectionManager<TSession> manager) where THub : Hub
     {
+        try
+        {
         foreach (var (connId, info) in manager.GetCopy())
         {
             if (info.HasExpired())
             {
                 _ = hub.Groups.RemoveFromGroupAsync(connId, info.GameKey);
             }
+        }
+        }catch (Exception error)
+        {
+            logger.LogError(error, nameof(CleanupManager));
         }
     }
 }

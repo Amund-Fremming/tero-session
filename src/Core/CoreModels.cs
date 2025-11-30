@@ -36,8 +36,9 @@ public enum Error
     System = 6,
     Json = 7,
     NullReference = 8,
-    Overflow,
-    Http
+    Overflow = 9,
+    Http = 10,
+    Upstream = 11
 }
 
 

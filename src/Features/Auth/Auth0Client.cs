@@ -34,7 +34,7 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogError("Response from auth0 was unsuccessful");
-                return Error.Http;
+                return Error.Upstream;
             }
 
             var json = await response.Content.ReadAsStringAsync();
@@ -48,18 +48,19 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
 
             return token;
         }
-        catch (NotSupportedException error)
+        catch(JsonException error)
         {
-            //
+            logger.LogError(error, nameof(FetchM2MToken));
+            return Error.Json;
         }
         catch (HttpRequestException error)
         {
-            //
+            logger.LogError(error, nameof(FetchM2MToken));
+            return Error.Http;
         }
         catch (Exception error)
         {
-            // Serialization errors
-            logger.LogError(error, "Error");
+            logger.LogError(error, nameof(FetchM2MToken));
             return Error.System;
         }
     }
@@ -94,7 +95,7 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
         }
         catch (Exception error)
         {
-            logger.LogError(error, "Error");
+            logger.LogError(error,nameof(GetToken));
             return Error.System;
         }
     }
