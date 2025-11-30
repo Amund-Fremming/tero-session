@@ -50,8 +50,14 @@ public class CacheCleanupJobTests
             Mock.Of<ILogger<GameSessionCache<QuizSession>>>(),
             _options
         );
-        var spinManager = new HubConnectionManager<SpinSession>(_options);
-        var quizManager = new HubConnectionManager<QuizSession>(_options);
+        var spinManager = new HubConnectionManager<SpinSession>(
+            Mock.Of<ILogger<HubConnectionManager<SpinSession>>>(),
+            _options
+        );
+        var quizManager = new HubConnectionManager<QuizSession>(
+            Mock.Of<ILogger<HubConnectionManager<QuizSession>>>(),
+            _options
+        );
 
         var job = new CacheCleanupJob(
             _loggerMock.Object,
@@ -79,8 +85,14 @@ public class CacheCleanupJobTests
             Mock.Of<ILogger<GameSessionCache<QuizSession>>>(),
             _options
         );
-        var spinManager = new HubConnectionManager<SpinSession>(_options);
-        var quizManager = new HubConnectionManager<QuizSession>(_options);
+        var spinManager = new HubConnectionManager<SpinSession>(
+            Mock.Of<ILogger<HubConnectionManager<SpinSession>>>(),
+            _options
+        );
+        var quizManager = new HubConnectionManager<QuizSession>(
+            Mock.Of<ILogger<HubConnectionManager<QuizSession>>>(),
+            _options
+        );
 
         var job = new CacheCleanupJob(
             _loggerMock.Object,
@@ -114,8 +126,14 @@ public class CacheCleanupJobTests
             Mock.Of<ILogger<GameSessionCache<QuizSession>>>(),
             _options
         );
-        var spinManager = new HubConnectionManager<SpinSession>(_options);
-        var quizManager = new HubConnectionManager<QuizSession>(_options);
+        var spinManager = new HubConnectionManager<SpinSession>(
+            Mock.Of<ILogger<HubConnectionManager<SpinSession>>>(),
+            _options
+        );
+        var quizManager = new HubConnectionManager<QuizSession>(
+            Mock.Of<ILogger<HubConnectionManager<QuizSession>>>(),
+            _options
+        );
 
         // Act
         var job = new CacheCleanupJob(
@@ -144,8 +162,14 @@ public class CacheCleanupJobTests
             Mock.Of<ILogger<GameSessionCache<QuizSession>>>(),
             _options
         );
-        var spinManager = new HubConnectionManager<SpinSession>(_options);
-        var quizManager = new HubConnectionManager<QuizSession>(_options);
+        var spinManager = new HubConnectionManager<SpinSession>(
+            Mock.Of<ILogger<HubConnectionManager<SpinSession>>>(),
+            _options
+        );
+        var quizManager = new HubConnectionManager<QuizSession>(
+            Mock.Of<ILogger<HubConnectionManager<QuizSession>>>(),
+            _options
+        );
 
         // Act
         var job = new CacheCleanupJob(

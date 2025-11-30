@@ -27,7 +27,6 @@ public sealed record CachedSession<T>
 
 public enum Error
 {
-    None = 0,
     KeyExists = 1,
     NotGameHost = 2,
     GameClosed = 3,

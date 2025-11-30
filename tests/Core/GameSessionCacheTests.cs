@@ -28,11 +28,7 @@ public class GameSessionCacheTests
         var result = _cache.Insert(key, session);
 
         // Assert  
-        if (result.IsErr())
-        {
-            var err = result.Err();
-            Assert.Fail($"Result should not be an error. Error value: {err}");
-        }
+        Assert.True(result.IsOk());
     }
 
     [Fact]
@@ -203,7 +199,7 @@ public class GameSessionCacheTests
         // Arrange
         var key = "test-key";
         var session = new TestSession { Value = "test" };
-         _cache.Insert(key, session);
+        _cache.Insert(key, session);
 
         // Act
         var result = await _cache.Remove(key);

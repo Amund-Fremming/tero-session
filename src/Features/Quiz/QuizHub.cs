@@ -1,3 +1,4 @@
+using System.Threading.Tasks.Dataflow;
 using Microsoft.AspNetCore.SignalR;
 using tero.session.src.Core;
 using tero.session.src.Features.Platform;
@@ -8,62 +9,105 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
 {
     public override async Task OnConnectedAsync()
     {
-        await base.OnConnectedAsync();
-        logger.LogDebug("Client connected to QuizSession");
+        try
+        {
+            await base.OnConnectedAsync();
+            logger.LogDebug("Client connected to QuizSession");
 
-        // TODO - remove
-        platformClient.GetType();
+            // TODO - remove
+            platformClient.GetType();
+        }
+        catch (Exception error)
+        {
+            //Syslog?
+            logger.LogError(error, nameof(OnConnectedAsync));
+        }
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        var option = manager.Get(Context.ConnectionId);
-        if (option.IsNone())
+        try
         {
-            // TODO - system log
-            logger.LogError("Failed to get diconnecting users data to gracefully remove");
+
+            var result = manager.Get(Context.ConnectionId);
+            if (result.IsErr())
+            {
+                await CoreUtils.Broadcast(Clients, result.Err(), logger);
+                return;
+            }
+
+            var option = result.Unwrap();
+            if (option.IsNone())
+            {
+                // TODO - system log
+                logger.LogError("Failed to get diconnecting users data to gracefully remove");
+                await base.OnDisconnectedAsync(exception);
+                return;
+            }
+
+            // TODO - upadte new host
+
+            var hubInfo = option.Unwrap();
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, hubInfo.GameKey);
             await base.OnDisconnectedAsync(exception);
-            return;
         }
-
-        // TODO - upadte new host
-
-        var hubInfo = option.Unwrap();
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, hubInfo.GameKey);
-        await base.OnDisconnectedAsync(exception);
+        catch (Exception error)
+        {
+            //Syslog?
+            logger.LogError(error, nameof(OnConnectedAsync));
+        }
     }
 
     public async Task AddQuestion(string key, string question)
     {
-        var result = await cache.Upsert<QuizSession>(key, session => session.AddQuesiton(question));
-        if (result.IsErr())
+        try
         {
-            await CoreUtils.Broadcast(Clients, result.Err());
-            return;
-        }
+            var result = await cache.Upsert<QuizSession>(key, session => session.AddQuesiton(question));
+            if (result.IsErr())
+            {
+                await CoreUtils.Broadcast(Clients, result.Err(), logger);
+                return;
+            }
 
-        logger.LogDebug("Added question to QuizSession");
+            logger.LogDebug("Added question to QuizSession");
+
+        }
+        catch (Exception error)
+        {
+            //Syslog?
+            logger.LogError(error, nameof(OnConnectedAsync));
+        }
     }
 
     public async Task StartGame(string key)
     {
-        var result = await cache.Upsert<QuizSession>(key, session => session.Start());
-        if (result.IsErr())
+        try
         {
-            await CoreUtils.Broadcast(Clients, result.Err());
-            return;
+            var result = await cache.Upsert<QuizSession>(key, session => session.Start());
+            if (result.IsErr())
+            {
+                await CoreUtils.Broadcast(Clients, result.Err(), logger);
+                return;
+            }
+
+            var game = result.Unwrap();
+            await Clients.Caller.SendAsync("game", game);
+
+            var removeResult = await cache.Remove(key);
+            if (removeResult.IsErr())
+            {
+                // log?
+                logger.LogError("Failed to remove game");
+                await CoreUtils.Broadcast(Clients, removeResult.Err(), logger);
+                return;
+            }
+
+            // TODO - persist game to platform
         }
-
-        var game = result.Unwrap();
-        await Clients.Caller.SendAsync("game", game);
-
-        var success = await cache.Remove(key);
-        if (!success)
+        catch (Exception error)
         {
-            logger.LogError("Failed to remove game");
-            // log?
+            //Syslog?
+            logger.LogError(error, nameof(OnConnectedAsync));
         }
-
-        // TODO - persist game to platform
     }
 }

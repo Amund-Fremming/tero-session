@@ -61,7 +61,6 @@ public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, Ca
     {
         try
         {
-
             if (connectionId == string.Empty || connectionId is null)
             {
                 return Error.NullReference;

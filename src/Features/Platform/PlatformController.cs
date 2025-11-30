@@ -33,8 +33,8 @@ public class PlatformController(
         }
         catch (Exception error)
         {
-            logger.LogError(error, "Error");
-            return StatusCode(500, "Internal server error");
+            logger.LogError(error, nameof(InitiateGameSession));
+            return StatusCode(500, "Internal server error II");
         }
     }
 }

@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using Moq;
 using tero.session.src.Core;
 
 namespace tero.session.tests.Core;
@@ -10,7 +12,10 @@ public class HubConnectionManagerTests
     public HubConnectionManagerTests()
     {
         _options = new CacheTTLOptions { SessionMinuttes = 10, ManagerMinuttes = 30 };
-        _manager = new HubConnectionManager<TestSession>(_options);
+        _manager = new HubConnectionManager<TestSession>(
+            Mock.Of<ILogger<HubConnectionManager<TestSession>>>(),
+            _options
+        );
     }
 
     [Fact]
@@ -24,7 +29,7 @@ public class HubConnectionManagerTests
         var result = _manager.Insert(connectionId, hubInfo);
 
         // Assert
-        Assert.True(result);
+        Assert.True(result.IsOk());
     }
 
     [Fact]
@@ -40,7 +45,7 @@ public class HubConnectionManagerTests
         var result = _manager.Insert(connectionId, hubInfo2);
 
         // Assert
-        Assert.False(result);
+        Assert.True(result.IsErr());
     }
 
     [Fact]
@@ -70,8 +75,10 @@ public class HubConnectionManagerTests
         var result = _manager.Get(connectionId);
 
         // Assert
-        Assert.True(result.IsSome());
-        var retrievedInfo = result.Unwrap();
+        Assert.True(result.IsOk());
+        var option = result.Unwrap();
+        Assert.True(option.IsSome());
+        var retrievedInfo = option.Unwrap();
         Assert.Equal("game-key", retrievedInfo.GameKey);
     }
 
@@ -85,7 +92,9 @@ public class HubConnectionManagerTests
         var result = _manager.Get(connectionId);
 
         // Assert
-        Assert.True(result.IsNone());
+        Assert.True(result.IsOk());
+        var option = result.Unwrap();
+        Assert.True(option.IsNone());
     }
 
     [Fact]
@@ -100,8 +109,10 @@ public class HubConnectionManagerTests
         var result = _manager.Remove(connectionId);
 
         // Assert
-        Assert.True(result.IsSome());
-        var removedInfo = result.Unwrap();
+        Assert.True(result.IsOk());
+        var option = result.Unwrap();
+        Assert.True(option.IsSome());
+        var removedInfo = option.Unwrap();
         Assert.Equal("game-key", removedInfo.GameKey);
     }
 
@@ -115,7 +126,9 @@ public class HubConnectionManagerTests
         var result = _manager.Remove(connectionId);
 
         // Assert
-        Assert.True(result.IsNone());
+        Assert.True(result.IsOk());
+        var option = result.Unwrap();
+        Assert.True(option.IsNone());
     }
 
     [Fact]
@@ -131,7 +144,9 @@ public class HubConnectionManagerTests
         var getResult = _manager.Get(connectionId);
 
         // Assert
-        Assert.True(getResult.IsNone());
+        Assert.True(getResult.IsOk());
+        var option = getResult.Unwrap();
+        Assert.True(option.IsNone());
     }
 
     [Fact]
@@ -164,7 +179,9 @@ public class HubConnectionManagerTests
 
         // Assert
         var originalGet = _manager.Get(connectionId);
-        Assert.True(originalGet.IsSome());
+        Assert.True(originalGet.IsOk());
+        var option = originalGet.Unwrap();
+        Assert.True(option.IsSome());
     }
 
     [Fact]
@@ -181,8 +198,8 @@ public class HubConnectionManagerTests
         var result2 = _manager.Insert(conn2, hubInfo2);
 
         // Assert
-        Assert.True(result1);
-        Assert.True(result2);
+        Assert.True(result1.IsOk());
+        Assert.True(result2.IsOk());
         var copy = _manager.GetCopy();
         Assert.Equal(2, copy.Count);
     }

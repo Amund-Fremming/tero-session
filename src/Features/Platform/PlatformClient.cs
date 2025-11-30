@@ -33,9 +33,14 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
 
             return Result<Error>.Ok;
         }
+        catch (HttpRequestException error)
+        {
+            logger.LogError(error, nameof(PersistGame));
+            return Error.Http;
+        }
         catch (Exception error)
         {
-            logger.LogError(error, "Error persisting game");
+            logger.LogError(error, nameof(PersistGame));
             return Error.System;
         }
     }
@@ -67,6 +72,11 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
             }
 
             return Result<Error>.Ok;
+        }
+        catch (HttpRequestException error)
+        {
+            logger.LogError(error, nameof(CreateSystemLog));
+            return Error.Http;
         }
         catch (Exception error)
         {

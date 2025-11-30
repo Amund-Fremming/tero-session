@@ -24,10 +24,10 @@ public class CacheCleanupJob(
                 await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
                 logger.LogDebug("Running cache cleanup");
 
-                _ = Task.Run(async () => await CleanupCache(spinHub, spinCache));
-                _ = Task.Run(async () => await CleanupCache(quizHub, quizCache));
+                _ = CleanupCache(spinHub, spinCache);
+                _ = CleanupCache(quizHub, quizCache);
 
-                _ = Task.Run(async () => await CleanupManager(spinHub, spinManager, spinCache));
+                _ = CleanupManager(spinHub, spinManager, spinCache);
                 _ = Task.Run(() => CleanupManager(quizHub, quizManager));
 
             }
@@ -48,6 +48,8 @@ public class CacheCleanupJob(
 
     private async Task CleanupCache<TSession, THub>(IHubContext<THub> hub, GameSessionCache<TSession> cache) where THub : Hub
     {
+        try
+        {
         foreach (var (key, value) in cache.GetCopy())
         {
             if (value.HasExpired())
@@ -63,6 +65,10 @@ public class CacheCleanupJob(
                 // TODO - make frontend call disconnect on this action
                 _ = hub.Clients.Groups(key).SendAsync("disconnect", "Spillet har blitt avsluttet");
             }
+        }
+        }catch (Exception error)
+        {
+            logger.LogError(error, nameof(CleanupCache));
         }
     }
 

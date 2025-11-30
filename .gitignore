@@ -25,3 +25,6 @@ artifacts/
 *.user
 *.userosscache
 *.sln.docstates
+
+# Secrets
+appsettings.Development.json
