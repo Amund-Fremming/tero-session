@@ -109,7 +109,7 @@ public sealed record Result<T, E>
     public static implicit operator Result<T, E>(E error) => new(default!, error);
     public E Err() => Error!;
 
-    public bool IsErr() => Error is not null && (!typeof(E).IsValueType || !EqualityComparer<E?>.Default.Equals(Error, default(E)));
+    public bool IsErr() => Data is null;
     public bool IsOk() => Data is not null;
     public T Unwrap()
     {
