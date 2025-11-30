@@ -12,7 +12,7 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
     private readonly object _lock = new();
     private readonly CachedToken _cachedToken = new();
 
-    private async Task<Result<M2MTokenResponse, Exception>> FetchM2MToken()
+    private async Task<Result<M2MTokenResponse, Error>> FetchM2MToken()
     {
         try
         {
@@ -34,7 +34,7 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogError("Response from auth0 was unsuccessful");
-                return new HttpRequestException("Statuscode was unsuccessful");
+                return Error.Http;
             }
 
             var json = await response.Content.ReadAsStringAsync();
@@ -43,19 +43,28 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
             if (token is null)
             {
                 logger.LogError("Auth token response was null");
-                return new NullReferenceException("Token was null");
+                return Error.NullReference;
             }
 
             return token;
         }
+        catch (NotSupportedException error)
+        {
+            //
+        }
+        catch (HttpRequestException error)
+        {
+            //
+        }
         catch (Exception error)
         {
+            // Serialization errors
             logger.LogError(error, "Error");
-            return error;
+            return Error.System;
         }
     }
 
-    public async ValueTask<Result<string, Exception>> GetToken()
+    public async ValueTask<Result<string, Error>> GetToken()
     {
         try
         {
@@ -86,7 +95,7 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
         catch (Exception error)
         {
             logger.LogError(error, "Error");
-            return error;
+            return Error.System;
         }
     }
 }

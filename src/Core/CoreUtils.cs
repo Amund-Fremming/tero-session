@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Text.Json;
 using Microsoft.AspNetCore.SignalR;
 
@@ -5,8 +6,10 @@ namespace tero.session.src.Core;
 
 public static class CoreUtils
 {
-    public static (int, string) InsertPayload<TSession>(GameSessionCache<TSession> cache, string key, JsonElement value)
+    public static Result<(int, string), Error> InsertPayload<TSession>(GameSessionCache<TSession> cache, string key, JsonElement value)
     {
+        try
+        {
         var spinSession = JsonSerializer.Deserialize<TSession>(value);
         if (spinSession is null)
         {
@@ -24,7 +27,18 @@ public static class CoreUtils
         }
 
         return (200, "Game initialized");
+        }
+        catch (JsonException)
+        {
+            return Error.Json;
+        }
+        catch (Exception)
+        {
+            return Error.System;
+        }
     }
+    
+
 
     public static async Task Broadcast(IHubCallerClients clients, Error error)
     {

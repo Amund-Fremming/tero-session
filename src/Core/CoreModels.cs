@@ -33,7 +33,11 @@ public enum Error
     GameClosed = 3,
     GameFinished = 4,
     GameNotFound = 5,
-    System = 6
+    System = 6,
+    Json = 7,
+    NullReference = 8,
+    Overflow,
+    Http
 }
 
 
@@ -111,7 +115,7 @@ public sealed record Result<T, E>
     {
         if (Data is null)
         {
-            throw new Exception("Cannot unwrap a error result");
+            throw new NullReferenceException("Cannot unwrap a error result");
         }
 
         return Data;

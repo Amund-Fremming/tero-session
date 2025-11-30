@@ -14,6 +14,11 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
     {
         try
         {
+            if(key == string.Empty || key is null || session is null)
+            {
+               return Error.NullReference; 
+            }
+
             var entry = new CachedSession<TSession>(session, _ttl);
             if (!_cache.TryAdd(key, entry))
             {
@@ -21,6 +26,12 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
             }
 
             return Result<Error>.Ok;
+        }
+        catch (OverflowException error)
+        {
+            // SYSLOG - this is bad
+            logger.LogError(error, "Cache overflowed"); 
+            return Error.Overflow;
         }
         catch (Exception error)
         {
@@ -31,11 +42,60 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
 
     public async Task<Result<TSession, Error>> Upsert(string key, Func<TSession, Result<TSession, Error>> func)
     {
-        var sem = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
-        await sem.WaitAsync();
+        SemaphoreSlim sem = null!; 
 
         try
         {
+            if(key == string.Empty || key is null)
+            {
+               return Error.NullReference; 
+            }
+
+            sem = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+            await sem.WaitAsync();
+
+            if (!_cache.TryGetValue(key, out var entry))
+            {
+                return Error.GameNotFound;
+            }
+
+            var session = entry.GetSession();
+            var result = func(session);
+            entry.SetSession(session);
+
+            return result;
+        }
+        catch (OverflowException error)
+        {
+            // SYSYLOG CRITICAL
+            logger.LogError(error, "Overflow error");
+            return Error.Overflow;
+        }
+        catch (Exception error)
+        {
+            logger.LogError(error, "Failed to upsert into session cache");
+            return Error.System;
+        }
+        finally
+        {
+            sem?.Release();
+        }
+    }
+
+    public async Task<Result<TResult, Error>> Upsert<TResult>(string key, Func<TSession, TResult> func)
+    {
+        SemaphoreSlim sem = null!;
+
+        try
+        {
+            if(key == string.Empty || key is null)
+            {
+               return Error.NullReference; 
+            }
+
+            sem = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+            await sem.WaitAsync();
+
             if (!_cache.TryGetValue(key, out var entry))
             {
                 return Error.GameNotFound;
@@ -54,46 +114,25 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
         }
         finally
         {
-            sem.Release();
-        }
-    }
-
-    public async Task<Result<TResult, Error>> Upsert<TResult>(string key, Func<TSession, TResult> func)
-    {
-        var sem = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
-        await sem.WaitAsync();
-
-        try
-        {
-            if (!_cache.TryGetValue(key, out var entry))
-            {
-                return Error.GameNotFound;
-            }
-
-            var session = entry.GetSession();
-            var result = func(session);
-            entry.SetSession(session);
-
-            return Result<TResult, Error>.Ok(result);
-        }
-        catch (Exception error)
-        {
-            logger.LogError(error, "Failed to upsert into session cache");
-            return Error.System;
-        }
-        finally
-        {
-            sem.Release();
+            sem?.Release();
         }
     }
 
     public async Task<bool> Remove(string key)
     {
-        var sem = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
-        await sem.WaitAsync();
+        SemaphoreSlim sem = null!;
 
         try
         {
+            if(key == string.Empty || key is null)
+            {
+                logger.LogCritical("Tried to remove session with non present key");
+               return false;
+            }
+
+            sem = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+            await sem.WaitAsync();
+
             if (!_cache.TryRemove(key, out _))
             {
                 logger.LogWarning("Tried removing non exising session from the cache");
@@ -108,7 +147,7 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
         }
         finally
         {
-            sem.Release();
+            sem?.Release();
 
             if (_locks.Remove(key, out var removedSem))
             {

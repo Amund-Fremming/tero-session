@@ -11,7 +11,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
 {
     private readonly HttpClient _client = httpClientFactory.CreateClient(nameof(PlatformClient));
 
-    public async Task<Result<Exception>> PersistGame()
+    public async Task<Result<Error>> PersistGame()
     {
         try
         {
@@ -28,19 +28,19 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogError("Failed to persist game, status code: {StatusCode}", response.StatusCode);
-                return new HttpRequestException($"Status code was {response.StatusCode}");
+                return Error.Http;
             }
 
-            return Result<Exception>.Ok;
+            return Result<Error>.Ok;
         }
         catch (Exception error)
         {
             logger.LogError(error, "Error persisting game");
-            return error;
+            return Error.System;
         }
     }
 
-    public async Task<Result<Exception>> CreateSystemLog(SystemLogRequest request)
+    public async Task<Result<Error>> CreateSystemLog(SystemLogRequest request)
     {
         try
         {
@@ -63,15 +63,15 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogError("Failed to create system log, status code: {StatusCode}", response.StatusCode);
-                return new HttpRequestException($"Status code was {response.StatusCode}");
+                return Error.Http;
             }
 
-            return Result<Exception>.Ok;
+            return Result<Error>.Ok;
         }
         catch (Exception error)
         {
             logger.LogError(error, "Error creating system log");
-            return error;
+            return Error.System;
         }
     } 
 }
