@@ -6,7 +6,7 @@ namespace tero.session.src.Core;
 
 public static class CoreUtils
 {
-    public static Result<(int, string), Error> InsertPayload<TSession>(GameSessionCache<TSession> cache, string key, JsonElement value)
+    public static (int, string) InsertPayload<TSession>(GameSessionCache<TSession> cache, string key, JsonElement value)
     {
         try
         {
@@ -30,11 +30,11 @@ public static class CoreUtils
         }
         catch (JsonException)
         {
-            return Error.Json;
+            return (500, "JSON error");
         }
         catch (Exception)
         {
-            return Error.System;
+            return (500, "Internal server error");
         }
     }
     

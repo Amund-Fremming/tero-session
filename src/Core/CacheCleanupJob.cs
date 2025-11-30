@@ -52,10 +52,11 @@ public class CacheCleanupJob(
         {
             if (value.HasExpired())
             {
-                var success = await cache.Remove(key);
-                if (!success)
+                var result = await cache.Remove(key);
+                if (result.IsErr())
                 {
                     // syslog?
+                    // Handle error here! - just log it with syslog, and use error type to get ceverity
                     logger.LogError("Background cleanup failed to remove entry from cache");
                 }
 

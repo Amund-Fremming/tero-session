@@ -118,7 +118,7 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
         }
     }
 
-    public async Task<bool> Remove(string key)
+    public async Task<Result<Error>> Remove(string key)
     {
         SemaphoreSlim sem = null!;
 
@@ -127,7 +127,7 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
             if(key == string.Empty || key is null)
             {
                 logger.LogCritical("Tried to remove session with non present key");
-               return false;
+            return Error.NullReference;
             }
 
             sem = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
@@ -138,12 +138,18 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
                 logger.LogWarning("Tried removing non exising session from the cache");
             }
 
-            return true;
+            return Result<Error>.Ok;
+        }
+        catch (OverflowException error)
+        {
+            // Syslog
+            logger.LogError(error, "Remove - overflow error");
+            return Error.Overflow;
         }
         catch (Exception error)
         {
             logger.LogError(error, "Failed to remove session from cache");
-            return false;
+            return Error.System;
         }
         finally
         {
