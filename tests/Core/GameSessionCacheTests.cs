@@ -149,7 +149,7 @@ public class GameSessionCacheTests
         var result = await _cache.Remove(key);
 
         // Assert
-        Assert.True(result);
+        Assert.True(result.IsOk());
         var copy = _cache.GetCopy();
         Assert.Empty(copy);
     }
@@ -164,7 +164,7 @@ public class GameSessionCacheTests
         var result = await _cache.Remove(key);
 
         // Assert
-        Assert.True(result);
+        Assert.True(result.IsOk());
     }
 
     [Fact]
@@ -205,7 +205,7 @@ public class GameSessionCacheTests
         var result = await _cache.Remove(key);
 
         // Assert
-        Assert.True(result);
+        Assert.True(result.IsOk());
         // The semaphore should be disposed and removed from locks
         var copy = _cache.GetCopy();
         Assert.Empty(copy);
