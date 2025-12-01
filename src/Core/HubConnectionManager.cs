@@ -9,6 +9,12 @@ public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, Ca
 
     public ConcurrentDictionary<string, HubInfo> GetCopy() => new(_manager);
 
+    public Result<int, Error> Size()
+    {
+        // TODO - implement
+        return 0;
+    }
+
     public Result<Option<HubInfo>, Error> Get(string connectionId)
     {
         try
@@ -32,6 +38,7 @@ public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, Ca
         }
         catch (Exception error)
         {
+            // TODO - system log 
             logger.LogError(error, nameof(Get));
             return Error.System;
         }
@@ -51,12 +58,13 @@ public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, Ca
         }
         catch (OverflowException error)
         {
-            // SYSTLOG
+            // TODO - system log 
             logger.LogError(error, "Insert - Cache overflow");
             return Error.Overflow;
         }
         catch (Exception error)
         {
+            // TODO - system log 
             logger.LogError(error, nameof(Insert));
             return Error.System;
         }
@@ -85,6 +93,7 @@ public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, Ca
         }
         catch (Exception error)
         {
+            // TODO - system log 
             logger.LogError(error, nameof(Remove));
             return Error.System;
         }

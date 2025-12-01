@@ -50,16 +50,19 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
         }
         catch(JsonException error)
         {
+            // TODO - system log 
             logger.LogError(error, nameof(FetchM2MToken));
             return Error.Json;
         }
         catch (HttpRequestException error)
         {
+            // TODO - system log 
             logger.LogError(error, nameof(FetchM2MToken));
             return Error.Http;
         }
         catch (Exception error)
         {
+            // TODO - system log 
             logger.LogError(error, nameof(FetchM2MToken));
             return Error.System;
         }
@@ -95,6 +98,7 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
         }
         catch (Exception error)
         {
+            // TODO - system log 
             logger.LogError(error,nameof(GetToken));
             return Error.System;
         }

@@ -35,11 +35,13 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
         }
         catch (HttpRequestException error)
         {
+            // TODO - system log 
             logger.LogError(error, nameof(PersistGame));
             return Error.Http;
         }
         catch (Exception error)
         {
+            // TODO - system log 
             logger.LogError(error, nameof(PersistGame));
             return Error.System;
         }
@@ -75,11 +77,13 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
         }
         catch (HttpRequestException error)
         {
+            // TODO - system log 
             logger.LogError(error, nameof(CreateSystemLog));
             return Error.Http;
         }
         catch (Exception error)
         {
+            // TODO - system log
             logger.LogError(error, "Error creating system log");
             return Error.System;
         }

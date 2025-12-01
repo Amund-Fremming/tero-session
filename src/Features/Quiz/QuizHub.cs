@@ -19,7 +19,7 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
         }
         catch (Exception error)
         {
-            //Syslog?
+            // TODO - system log 
             logger.LogError(error, nameof(OnConnectedAsync));
         }
     }
@@ -45,15 +45,13 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
                 return;
             }
 
-            // TODO - upadte new host
-
             var hubInfo = option.Unwrap();
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, hubInfo.GameKey);
             await base.OnDisconnectedAsync(exception);
         }
         catch (Exception error)
         {
-            //Syslog?
+            // TODO - system log 
             logger.LogError(error, nameof(OnConnectedAsync));
         }
     }
@@ -74,7 +72,7 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
         }
         catch (Exception error)
         {
-            //Syslog?
+            // TODO - system log 
             logger.LogError(error, nameof(OnConnectedAsync));
         }
     }
@@ -106,7 +104,7 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
         }
         catch (Exception error)
         {
-            //Syslog?
+            // TODO - system log
             logger.LogError(error, nameof(OnConnectedAsync));
         }
     }

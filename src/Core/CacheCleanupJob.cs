@@ -24,12 +24,18 @@ public class CacheCleanupJob(
                 await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
                 logger.LogDebug("Running cache cleanup");
 
-                _ = CleanupCache(spinHub, spinCache);
-                _ = CleanupCache(quizHub, quizCache);
+                var spinSessionCleanup = CleanupCache(spinHub, spinCache);
+                var quizSessionCleanup = CleanupCache(quizHub, quizCache);
 
-                _ = CleanupManager(spinHub, spinManager, spinCache);
-                _ = Task.Run(() => CleanupManager(quizHub, quizManager));
+                var spinManagerCleanup = CleanupManager(spinHub, spinManager, spinCache);
+                var quizManagerCleanup = CleanupManager(quizHub, quizManager);
 
+                await Task.WhenAll(
+                    spinSessionCleanup,
+                    quizSessionCleanup,
+                    spinManagerCleanup,
+                    quizManagerCleanup
+                );
             }
             catch (OperationCanceledException error)
             {
@@ -38,36 +44,38 @@ public class CacheCleanupJob(
             }
             catch (Exception error)
             {
-                // Syslog?
+                // TODO - system log
                 logger.LogError(error, "CacheCleanupJob");
             }
         }
 
-        logger.LogInformation("Cache cleanup service stopped");
+        logger.LogInformation("Cache cleanup service finished");
     }
 
     private async Task CleanupCache<TSession, THub>(IHubContext<THub> hub, GameSessionCache<TSession> cache) where THub : Hub
     {
         try
         {
-        foreach (var (key, value) in cache.GetCopy())
-        {
-            if (value.HasExpired())
+            foreach (var (key, value) in cache.GetCopy())
             {
-                var result = await cache.Remove(key);
-                if (result.IsErr())
+                if (value.HasExpired())
                 {
-                    // syslog?
-                    // Handle error here! - just log it with syslog, and use error type to get ceverity
-                    logger.LogError("Background cleanup failed to remove entry from cache");
+                    var result = await cache.Remove(key);
+                    if (result.IsErr())
+                    {
+                        // TODO - system log
+                        logger.LogError("Background cleanup failed to remove entry from cache");
+                    }
+
+                    // TODO - make frontend call disconnect on this action
+                    await hub.Clients.Groups(key).SendAsync("disconnect", "Spillet har blitt avsluttet");
                 }
 
-                // TODO - make frontend call disconnect on this action
-                _ = hub.Clients.Groups(key).SendAsync("disconnect", "Spillet har blitt avsluttet");
             }
         }
-        }catch (Exception error)
+        catch (Exception error)
         {
+            // TODO - system log
             logger.LogError(error, nameof(CleanupCache));
         }
     }
@@ -76,43 +84,51 @@ public class CacheCleanupJob(
     {
         try
         {
-        foreach (var (connId, info) in manager.GetCopy())
-        {
-            if (info.HasExpired())
+            foreach (var (connId, info) in manager.GetCopy())
             {
-                // Fire and forget here?
-                var result = await cache.Upsert(info.GameKey, session => session.Cleanup(info.UserId));
-                if (result.IsErr())
+                if (info.HasExpired())
                 {
-                    // Syslog
-                    logger.LogError($"Failed to cleanup session manager {result.Err()}");
-                }
+                    // Fire and forget here?
+                    var result = await cache.Upsert(info.GameKey, session => session.Cleanup(info.UserId));
+                    if (result.IsErr())
+                    {
+                        // TODO - system log 
+                        logger.LogError("Failed to cleanup session for user id {Guid} - {Error}", info.UserId, result.Err());
+                    }
 
-                _ = hub.Groups.RemoveFromGroupAsync(connId, info.GameKey);
-                    _ = manager.Remove(connId);
+                    await hub.Groups.RemoveFromGroupAsync(connId, info.GameKey);
+                    var removeResult = manager.Remove(connId);
+
+                    if (removeResult.IsErr())
+                    {
+                        // TODO - system log 
+                        logger.LogError("Failed to remove entry in conneciton manager: {Error}", result.Err());
+                    }
                 }
             }
         }
         catch (Exception error)
         {
-            // Systlog?
+            // TODO - system log 
             logger.LogError(error, "CleanupManager: ICleanuppable");
         }
     }
 
-    private void CleanupManager<THub, TSession>(IHubContext<THub> hub,HubConnectionManager<TSession> manager) where THub : Hub
+    private async Task CleanupManager<THub, TSession>(IHubContext<THub> hub, HubConnectionManager<TSession> manager) where THub : Hub
     {
         try
         {
-        foreach (var (connId, info) in manager.GetCopy())
-        {
-            if (info.HasExpired())
+            foreach (var (connId, info) in manager.GetCopy())
             {
-                _ = hub.Groups.RemoveFromGroupAsync(connId, info.GameKey);
+                if (info.HasExpired())
+                {
+                    await hub.Groups.RemoveFromGroupAsync(connId, info.GameKey);
+                }
             }
         }
-        }catch (Exception error)
+        catch (Exception error)
         {
+            // TODO - system log
             logger.LogError(error, nameof(CleanupManager));
         }
     }

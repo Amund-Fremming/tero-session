@@ -9,8 +9,16 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
 {
     public override async Task OnConnectedAsync()
     {
-        await base.OnConnectedAsync();
-        logger.LogDebug("Client connected to SpinSession");
+        try
+        {
+            await base.OnConnectedAsync();
+            logger.LogDebug("Client connected to SpinSession");
+        }
+        catch (Exception error)
+        {
+            // TODO - system log
+            logger.LogError(error, nameof(OnConnectedAsync));
+        }
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
@@ -58,6 +66,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
         }
         catch (Exception error)
         {
+            // TODO - system log
             logger.LogError(error, nameof(OnDisconnectedAsync));
         }
     }
@@ -106,6 +115,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
         }
         catch (Exception error)
         {
+            // TODO - system log
             logger.LogError(error, nameof(OnDisconnectedAsync));
         }
     }
@@ -131,7 +141,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
         }
         catch (Exception error)
         {
-            //Syslog?
+            // TODO - system log
             logger.LogError(error, nameof(OnConnectedAsync));
         }
     }
@@ -157,7 +167,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
         }
         catch (Exception error)
         {
-            //Syslog?
+            // TODO - system log
             logger.LogError(error, nameof(OnConnectedAsync));
         }
     }
@@ -173,20 +183,23 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             }
 
             var session = result.Unwrap();
-
             var userIds = session.GetUserIds();
-            // TODO - this does not increment players chosen in the cache
-            var selected = session.GetSpinResult(2);
-
+            const int selectedPerRound = 2;
+            var selected = session.GetSpinResult(selectedPerRound);
             var rng = new Random();
-            int spinRounds = (int)(rng.NextDouble() * (6 * session.UsersCount()));
+            int spinRounds = rng.Next(2, 7); 
 
-            // TODO - if 2 to be selected this loop should send out 2 selected, not 1 for each iteration
             for (var i = 0; i < spinRounds; i++)
             {
-                foreach (var id in userIds)
+                for (var j = 0; j < userIds.Count; j += selectedPerRound)
                 {
-                    await Clients.Group(key).SendAsync("selected", id);
+                    var batch = userIds.Skip(j).Take(selectedPerRound);
+                    foreach (var id in batch)
+                    {
+                        await Clients.Group(key).SendAsync("selected", id);
+                    }
+
+                    await Task.Delay(400);
                 }
             }
 
@@ -202,7 +215,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
         }
         catch (Exception error)
         {
-            //Syslog?
+            // TODO - system log
             logger.LogError(error, nameof(OnConnectedAsync));
         }
     }
@@ -232,7 +245,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
         }
         catch (Exception error)
         {
-            //Syslog?
+            // TODO - system log
             logger.LogError(error, nameof(OnConnectedAsync));
         }
     }

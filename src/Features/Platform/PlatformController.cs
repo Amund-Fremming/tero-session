@@ -11,7 +11,9 @@ namespace tero.session.src.Features.Platform;
 public class PlatformController(
     ILogger<PlatformController> logger,
     GameSessionCache<SpinSession> spinCache,
-    GameSessionCache<QuizSession> quizCache
+    GameSessionCache<QuizSession> quizCache,
+    HubConnectionManager<SpinSession> spinManager,
+    HubConnectionManager<QuizSession> quizManager
 ) : ControllerBase
 {
     [HttpPost("initiate/{gameType}/{key}")]
@@ -19,9 +21,7 @@ public class PlatformController(
     {
         try
         {
-            // TODO - remove
             logger.LogDebug("Recieved request for {GameType} with key: {string}", gameType, key);
-
             var (statusCode, message) = gameType switch
             {
                 GameType.Spin => CoreUtils.InsertPayload(spinCache, key, value),
@@ -33,7 +33,30 @@ public class PlatformController(
         }
         catch (Exception error)
         {
+            // TODO - system log 
             logger.LogError(error, nameof(InitiateGameSession));
+            return StatusCode(500, "Internal server error II");
+        }
+    }
+
+    public async Task<IActionResult> CacheInfo()
+    {
+        try
+        {
+            var payload = new CacheInfo
+            {
+                SpinSessionSize = spinCache.Size(),
+                SpinManagerSize = spinManager.Size(),
+                QuizSessionSize = quizCache.Size(),
+                QuizManagerSize = quizManager.Size()
+            };
+
+            return Ok(payload);
+        }
+        catch (Exception error)
+        {
+            // TODO - system log 
+            logger.LogError(error, nameof(CacheInfo));
             return StatusCode(500, "Internal server error II");
         }
     }

@@ -10,6 +10,12 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
 
     public ConcurrentDictionary<string, CachedSession<TSession>> GetCopy() => new(_cache);
 
+    public Result<int, Error> Size()
+    {
+        // TODO - implement
+        return 0;
+    }
+
     public Result<Error> Insert(string key, TSession session)
     {
         try
@@ -29,12 +35,13 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
         }
         catch (OverflowException error)
         {
-            // SYSLOG - this is bad
+            // TODO - system log critical
             logger.LogError(error, "Cache overflowed"); 
             return Error.Overflow;
         }
         catch (Exception error)
         {
+            // TODO - system log
             logger.LogError(error, "Failed to insert into session cache");
             return Error.System;
         }
@@ -67,12 +74,13 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
         }
         catch (OverflowException error)
         {
-            // SYSYLOG CRITICAL
+            // TODO - system log critical
             logger.LogError(error, "Overflow error");
             return Error.Overflow;
         }
         catch (Exception error)
         {
+            // TODO - system log
             logger.LogError(error, "Failed to upsert into session cache");
             return Error.System;
         }
@@ -109,6 +117,7 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
         }
         catch (Exception error)
         {
+            // TODO - system log
             logger.LogError(error, "Failed to upsert into session cache");
             return Error.System;
         }
@@ -142,12 +151,13 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
         }
         catch (OverflowException error)
         {
-            // Syslog
+            // TODO - system log critical
             logger.LogError(error, "Remove - overflow error");
             return Error.Overflow;
         }
         catch (Exception error)
         {
+            // TODO - system log 
             logger.LogError(error, "Failed to remove session from cache");
             return Error.System;
         }

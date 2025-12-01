@@ -11,6 +11,15 @@ public class Auth0ClientTests
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly Auth0Options _options;
 
+    private Auth0Client CreateAuth0Client()
+    {
+        return new Auth0Client(
+            _httpClientFactory,
+            _logger,
+            Options.Create(_options)
+        );
+    }
+
     public Auth0ClientTests()
     {
         // Load real configuration from appsettings
@@ -84,23 +93,6 @@ public class Auth0ClientTests
         Assert.Equal(firstToken, secondToken); // Should return same cached token
     }
 
-    [Fact(Skip = "Requires real Auth0 config and takes >1 second to run")]
-    public async Task GetToken_WhenCacheExpires_ShouldFetchNewToken()
-    {
-        // This test would require a short-lived token from Auth0
-        // In practice, Auth0 tokens live for hours, so this is skipped
-        // Manual verification: Check logs to see cache hits vs misses
-        await Task.CompletedTask;
-    }
-
-    [Fact(Skip = "Requires invalid Auth0 credentials to test failure path")]
-    public async Task GetToken_WhenHttpRequestFails_ShouldReturnError()
-    {
-        // Would need invalid credentials to test this
-        // Not practical for real integration tests
-        await Task.CompletedTask;
-    }
-
     [Fact]
     public async Task GetToken_MultipleConcurrentCalls_ShouldHandleThreadSafety()
     {
@@ -124,12 +116,4 @@ public class Auth0ClientTests
         Assert.Single(uniqueTokens); // Only one unique token despite concurrent calls
     }
 
-    private Auth0Client CreateAuth0Client()
-    {
-        return new Auth0Client(
-            _httpClientFactory,
-            _logger,
-            Options.Create(_options)
-        );
-    }
 }
