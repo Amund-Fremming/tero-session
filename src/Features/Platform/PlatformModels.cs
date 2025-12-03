@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -22,8 +23,6 @@ public record GameSessionRequest
     public JsonElement Value { get; init; }
 }
 
-public sealed record SystemLogRequest(string? Description);
-
 public sealed record CreateSyslogRequest
 {
     [JsonPropertyName("action")]
@@ -39,7 +38,7 @@ public sealed record CreateSyslogRequest
     public string? FileName { get; set; }
 
     [JsonPropertyName("metadata")]
-    public JsonElement? Metadata { get; set; }
+    public object? Metadata { get; set; }
 }
 
 public enum LogAction
@@ -58,6 +57,7 @@ public enum LogAction
     Other,
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum LogCeverity
 {
     [JsonPropertyName("critical")]
@@ -66,4 +66,55 @@ public enum LogCeverity
     Warning,
     [JsonPropertyName("info")]
     Info,
+}
+
+public class LogBuilder
+{
+    public LogAction? Action { get; set; }
+    public LogCeverity? Ceverity { get; set; }
+    public string? Description { get; set; }
+    public string? FileName { get; set; }
+    public object? Metadata { get; set; }
+
+    public static LogBuilder New() => new();
+
+    public LogBuilder WithAction(LogAction action)
+    {
+        Action = action;
+        return this;
+    }
+
+    public LogBuilder WithCeverity(LogCeverity ceverity)
+    {
+        Ceverity = ceverity;
+        return this;
+    }
+
+    public LogBuilder WithDescription(string description)
+    {
+        Description = description;
+        return this;
+    }
+
+    public LogBuilder WithFileName(string fileName)
+    {
+        FileName = fileName;
+        return this;
+    }
+
+    public LogBuilder WithMetadata(object metadata)
+    {
+        Metadata = metadata;
+        return this;
+    }
+
+    public CreateSyslogRequest Build()
+        => new()
+        {
+            Action = Action is null ? LogAction.Other : Action,
+            Ceverity = Ceverity is null ? LogCeverity.Info : Ceverity,
+            Description = Description is not null ? Description : "No description",
+            FileName = FileName is not null ? FileName : "unknown",
+            Metadata = Metadata,
+        };
 }

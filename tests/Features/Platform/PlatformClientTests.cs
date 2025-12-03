@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using tero.session.src.Core;
 using tero.session.src.Features.Auth;
 using tero.session.src.Features.Platform;
+using Xunit.Abstractions;
 
 namespace tero.session.tests.Features.Platform;
 
@@ -14,9 +15,12 @@ public class PlatformClientTests
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly Auth0Options _auth0Options;
     private readonly PlatformOptions _platformOptions;
+    private readonly ITestOutputHelper _output;
 
-    public PlatformClientTests()
+    public PlatformClientTests(ITestOutputHelper output)
     {
+        _output = output;
+
         // Load real configuration from appsettings
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
@@ -31,8 +35,14 @@ public class PlatformClientTests
         _platformOptions = configuration.GetSection("Platform").Get<PlatformOptions>()
             ?? throw new InvalidOperationException("Platform options not configured");
 
-        _logger = new LoggerFactory().CreateLogger<PlatformClient>();
-        _auth0Logger = new LoggerFactory().CreateLogger<Auth0Client>();
+        var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddProvider(new XunitLoggerProvider(output));
+            builder.SetMinimumLevel(LogLevel.Debug);
+        });
+
+        _logger = loggerFactory.CreateLogger<PlatformClient>();
+        _auth0Logger = loggerFactory.CreateLogger<Auth0Client>();
         _httpClientFactory = new MultiClientHttpFactory(_auth0Options.BaseUrl, _platformOptions.BaseUrl);
     }
 
@@ -69,7 +79,11 @@ public class PlatformClientTests
     {
         // Arrange
         var client = CreatePlatformClient();
-        var request = new SystemLogRequest("Test system log from integration test");
+        var request = new CreateSyslogRequest()
+        {
+            Description = "Heya",
+            Ceverity = LogCeverity.Info
+        };
 
         // Act
         var result = await client.CreateSystemLog(request);
@@ -82,5 +96,25 @@ public class PlatformClientTests
         }
 
         Assert.True(result.IsOk());
+    }
+}
+public class XunitLoggerProvider(ITestOutputHelper output) : ILoggerProvider
+{
+    public ILogger CreateLogger(string categoryName) => new XunitLogger(output, categoryName);
+    public void Dispose() { }
+}
+
+public class XunitLogger(ITestOutputHelper output, string categoryName) : ILogger
+{
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+    public bool IsEnabled(LogLevel logLevel) => true;
+
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+    {
+        output.WriteLine($"[{logLevel}] {categoryName}: {formatter(state, exception)}");
+        if (exception != null)
+        {
+            output.WriteLine(exception.ToString());
+        }
     }
 }

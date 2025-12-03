@@ -40,8 +40,6 @@ public enum Error
     Upstream = 10
 }
 
-
-
 public class CacheTTLOptions
 {
     public int SessionMinuttes { get; set; }
@@ -66,7 +64,6 @@ public sealed record HubInfo
     public void SetTtl(TimeSpan ttl) => ExpiresAt = DateTime.Now.Add(ttl);
 }
 
-
 public enum GameCategory
 {
     [JsonPropertyName("casual")]
@@ -86,8 +83,6 @@ public enum GameType
     Spin,
     Quiz
 }
-
-
 
 public sealed record Result<T, E>
 {
