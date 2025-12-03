@@ -94,18 +94,9 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             }
 
             var insertResult = manager.Insert(Context.ConnectionId, new HubInfo(key, userId));
-            if(insertResult.IsErr())
+            if (insertResult.IsErr())
             {
                 await CoreUtils.Broadcast(Clients, insertResult.Err(), logger);
-                return;
-            }
-
-            var success = insertResult.Unwrap();
-            if (!success)
-            {
-                // TODO - log system log
-                logger.LogError("Failed to add connection id to connection cache");
-                await Clients.Caller.SendAsync("error", "En feil har skjedd, forsøk igjen");
                 return;
             }
 
@@ -187,7 +178,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             const int selectedPerRound = 2;
             var selected = session.GetSpinResult(selectedPerRound);
             var rng = new Random();
-            int spinRounds = rng.Next(2, 7); 
+            int spinRounds = rng.Next(2, 7);
 
             for (var i = 0; i < spinRounds; i++)
             {

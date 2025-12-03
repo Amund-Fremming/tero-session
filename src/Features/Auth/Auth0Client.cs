@@ -9,7 +9,7 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
 {
     private readonly HttpClient _client = httpClientFactory.CreateClient(nameof(Auth0Client));
     private readonly Auth0Options _options = options.Value;
-    private readonly object _lock = new();
+    private readonly SemaphoreSlim _semLock = new(1, 1);
     private readonly CachedToken _cachedToken = new();
 
     private async Task<Result<M2MTokenResponse, Error>> FetchM2MToken()
@@ -48,7 +48,7 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
 
             return token;
         }
-        catch(JsonException error)
+        catch (JsonException error)
         {
             // TODO - system log 
             logger.LogError(error, nameof(FetchM2MToken));
@@ -72,12 +72,11 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
     {
         try
         {
-            lock (_lock)
+            await _semLock.WaitAsync();
+
+            if (_cachedToken.IsValid())
             {
-                if (_cachedToken.IsValid())
-                {
-                    return _cachedToken.Token;
-                }
+                return _cachedToken.Token;
             }
 
             var result = await FetchM2MToken();
@@ -88,19 +87,21 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
             }
 
             var response = result.Unwrap();
-            lock (_lock)
-            {
-                _cachedToken.SetToken(response.AccessToken);
-                _cachedToken.SetExpiry(response.ExpiresIn);
-            }
+
+            _cachedToken.SetToken(response.AccessToken);
+            _cachedToken.SetExpiry(response.ExpiresIn);
 
             return response.AccessToken;
         }
         catch (Exception error)
         {
             // TODO - system log 
-            logger.LogError(error,nameof(GetToken));
+            logger.LogError(error, nameof(GetToken));
             return Error.System;
+        }
+        finally
+        {
+            _semLock.Release();
         }
     }
 }

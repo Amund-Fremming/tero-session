@@ -41,43 +41,43 @@ public static class CoreUtils
     {
         try
         {
-        logger.LogError("Broadcast recieved error: {Error}", error);
-        switch (error)
-        {
-            case Error.KeyExists:
-                await clients.Caller.SendAsync("error", "Spill nøkkelen er allerede i bruk");
-                break;
-            case Error.NotGameHost:
-                await clients.Caller.SendAsync("error", "Denne handlingen kan bare en host gjøre");
-                break;
-            case Error.GameClosed:
-                await clients.Caller.SendAsync("error", "Spillet er lukket for fler handlinger");
-                break;
-            case Error.GameFinished:
-                await clients.Caller.SendAsync("error", "Spillet er ferdig");
-                break;
-            case Error.GameNotFound:
-                await clients.Caller.SendAsync("error", "Spillet finnes ikke");
-                break;
-            case Error.System:
-                await clients.Caller.SendAsync("error", "En feil har skjedd, forsøk igjen senere");
-                break;
-            case Error.Json:
-                await clients.Caller.SendAsync("error", "En feil har skjedd, forsøk på nytt");
-                break;
-            case Error.NullReference:
-                await clients.Caller.SendAsync("error", "Mottok en tom verdi, forsøk på nytt");
-                break;
-            case Error.Overflow:
-                await clients.Caller.SendAsync("error", "En feil har skjedd, forsøk på nytt");
-                break;
-            case Error.Http:
-                await clients.Caller.SendAsync("error", "En feil har skjedd, forsøk på nytt");
-                break;
-            case Error.Upstream:
-                await clients.Caller.SendAsync("error", "En feil har skjedd, forsøk på nytt");
-                break;
-        }
+            logger.LogError("Broadcast recieved error: {Error}", error);
+            switch (error)
+            {
+                case Error.KeyExists:
+                    await clients.Caller.SendAsync("error", "Spill nøkkelen er allerede i bruk");
+                    break;
+                case Error.NotGameHost:
+                    await clients.Caller.SendAsync("error", "Denne handlingen kan bare en host gjøre");
+                    break;
+                case Error.GameClosed:
+                    await clients.Caller.SendAsync("error", "Spillet er lukket for fler handlinger");
+                    break;
+                case Error.GameFinished:
+                    await clients.Caller.SendAsync("error", "Spillet er ferdig");
+                    break;
+                case Error.GameNotFound:
+                    await clients.Caller.SendAsync("error", "Spillet finnes ikke");
+                    break;
+                case Error.System:
+                    await clients.Caller.SendAsync("error", "En feil har skjedd, forsøk igjen senere");
+                    break;
+                case Error.Json:
+                    await clients.Caller.SendAsync("error", "En feil har skjedd, forsøk på nytt");
+                    break;
+                case Error.NullReference:
+                    await clients.Caller.SendAsync("error", "Mottok en tom verdi, forsøk på nytt");
+                    break;
+                case Error.Overflow:
+                    await clients.Caller.SendAsync("error", "En feil har skjedd, forsøk på nytt");
+                    break;
+                case Error.Http:
+                    await clients.Caller.SendAsync("error", "En feil har skjedd, forsøk på nytt");
+                    break;
+                case Error.Upstream:
+                    await clients.Caller.SendAsync("error", "En feil har skjedd, forsøk på nytt");
+                    break;
+            }
         }
         catch (Exception ex)
         {

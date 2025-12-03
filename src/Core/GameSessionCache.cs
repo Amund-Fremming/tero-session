@@ -4,7 +4,7 @@ namespace tero.session.src.Core;
 
 public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logger, CacheTTLOptions options)
 {
-    private readonly TimeSpan _ttl =  TimeSpan.FromMinutes(options.SessionMinuttes);
+    private readonly TimeSpan _ttl = TimeSpan.FromMinutes(options.SessionMinuttes);
     private readonly ConcurrentDictionary<string, CachedSession<TSession>> _cache = [];
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = [];
 
@@ -20,9 +20,9 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
     {
         try
         {
-            if(key == string.Empty || key is null || session is null)
+            if (key == string.Empty || key is null || session is null)
             {
-               return Error.NullReference; 
+                return Error.NullReference;
             }
 
             var entry = new CachedSession<TSession>(session, _ttl);
@@ -36,7 +36,7 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
         catch (OverflowException error)
         {
             // TODO - system log critical
-            logger.LogError(error, "Cache overflowed"); 
+            logger.LogError(error, "Cache overflowed");
             return Error.Overflow;
         }
         catch (Exception error)
@@ -49,13 +49,13 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
 
     public async Task<Result<TSession, Error>> Upsert(string key, Func<TSession, Result<TSession, Error>> func)
     {
-        SemaphoreSlim sem = null!; 
+        SemaphoreSlim sem = null!;
 
         try
         {
-            if(key == string.Empty || key is null)
+            if (key == string.Empty || key is null)
             {
-               return Error.NullReference; 
+                return Error.NullReference;
             }
 
             sem = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
@@ -96,9 +96,9 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
 
         try
         {
-            if(key == string.Empty || key is null)
+            if (key == string.Empty || key is null)
             {
-               return Error.NullReference; 
+                return Error.NullReference;
             }
 
             sem = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
@@ -127,16 +127,16 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
         }
     }
 
-    public async Task<Result<Error>> Remove(string key)
+    public async Task<Result<bool, Error>> Remove(string key)
     {
         SemaphoreSlim sem = null!;
 
         try
         {
-            if(key == string.Empty || key is null)
+            if (key == string.Empty || key is null)
             {
                 logger.LogCritical("Tried to remove session with non present key");
-            return Error.NullReference;
+                return Error.NullReference;
             }
 
             sem = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
@@ -147,7 +147,7 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
                 logger.LogWarning("Tried removing non exising session from the cache");
             }
 
-            return Result<Error>.Ok;
+            return true;
         }
         catch (OverflowException error)
         {

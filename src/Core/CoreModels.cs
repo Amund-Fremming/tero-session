@@ -6,7 +6,7 @@ namespace tero.session.src.Core;
 public sealed record CachedSession<T>
 {
     private T Session { get; set; } = default!;
-    private DateTime ExpiresAt {get; set;} = DateTime.Now;
+    private DateTime ExpiresAt { get; set; } = DateTime.Now;
 
     public CachedSession(T session, TimeSpan ttl)
     {
@@ -17,7 +17,7 @@ public sealed record CachedSession<T>
     public bool HasExpired() => ExpiresAt < DateTime.Now;
 
     public T GetSession() => Session;
-    
+
     public void SetSession(T session)
     {
         ExpiresAt = DateTime.Now;
@@ -44,8 +44,8 @@ public enum Error
 
 public class CacheTTLOptions
 {
-    public int SessionMinuttes {get; set;} 
-    public int ManagerMinuttes {get; set;} 
+    public int SessionMinuttes { get; set; }
+    public int ManagerMinuttes { get; set; }
 }
 
 public sealed record HubInfo
@@ -124,23 +124,25 @@ public sealed record Result<T, E>
 
 public sealed record Result<E>
 {
+    private bool IsError { get; set; }
     private E? Error { get; set; }
 
-    private Result(E? error)
+    private Result(bool isError, E? error)
     {
+        IsError = isError;
         Error = error;
     }
 
-    public static Result<E> Ok => new(default);
+    public static Result<E> Ok => new(false, default);
 
-    public static Result<E> Err(E error) => new(error);
+    public static Result<E> Err(E error) => new(true, error);
 
-    public static implicit operator Result<E>(E error) => new(error);
+    public static implicit operator Result<E>(E error) => new(true, error);
 
     public E Err() => Error!;
 
-    public bool IsErr() => Error is not null && (!typeof(E).IsValueType || !EqualityComparer<E?>.Default.Equals(Error, default(E)));
-    public bool IsOk() => !IsErr();
+    public bool IsErr() => IsError;
+    public bool IsOk() => !IsError;
 }
 
 public sealed record Option<T>(T Data)

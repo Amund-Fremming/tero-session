@@ -24,7 +24,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
             var token = result.Unwrap();
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await _client.PostAsync("/api/games/persist", null);
+            var response = await _client.PostAsync("/games/persist", null);
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogError("Failed to persist game, status code: {StatusCode}", response.StatusCode);
@@ -66,7 +66,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
                 "application/json"
             );
 
-            var response = await _client.PostAsync("/api/logs/system", content);
+            var response = await _client.PostAsync("/logs", content);
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogError("Failed to create system log, status code: {StatusCode}", response.StatusCode);
@@ -87,5 +87,5 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
             logger.LogError(error, "Error creating system log");
             return Error.System;
         }
-    } 
+    }
 }

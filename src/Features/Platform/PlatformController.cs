@@ -25,7 +25,7 @@ public class PlatformController(
             var (statusCode, message) = gameType switch
             {
                 GameType.Spin => CoreUtils.InsertPayload(spinCache, key, value),
-                GameType.Quiz=> CoreUtils.InsertPayload(quizCache, key, value),
+                GameType.Quiz => CoreUtils.InsertPayload(quizCache, key, value),
                 _ => (400, "Game type not supported")
             };
 
@@ -43,6 +43,10 @@ public class PlatformController(
     {
         try
         {
+            await Task.Run(() => { });
+            spinManager.GetType();
+            quizManager.GetType();
+            /*
             var payload = new CacheInfo
             {
                 SpinSessionSize = spinCache.Size(),
@@ -52,6 +56,8 @@ public class PlatformController(
             };
 
             return Ok(payload);
+*/
+            return Ok();
         }
         catch (Exception error)
         {

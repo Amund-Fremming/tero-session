@@ -6,6 +6,9 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <EnableDefaultItems>true</EnableDefaultItems>
+    <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,5 +28,18 @@
   <ItemGroup>
     <ProjectReference Include="..\tero.session.csproj" />
   </ItemGroup>
+
+  <Target Name="RemoveRuntimeConfigFromCopy" BeforeTargets="CopyFilesToOutputDirectory">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(Filename)' == 'tero.session' and ('%(Extension)' == '.runtimeconfig.json' or '%(Extension)' == '.deps.json')" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="CopyCustomContent" AfterTargets="Build">
+    <ItemGroup>
+      <SourceFiles Include="$(MSBuildProjectDirectory)\..\appsettings*.json" />
+    </ItemGroup>
+    <Copy SourceFiles="@(SourceFiles)" DestinationFolder="$(OutDir)" />
+  </Target>
 
 </Project>

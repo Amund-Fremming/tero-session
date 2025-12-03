@@ -44,7 +44,7 @@ public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, Ca
         }
     }
 
-    public Result<bool, Error> Insert(string connectionId, HubInfo value)
+    public Result<Error> Insert(string connectionId, HubInfo value)
     {
         try
         {
@@ -54,7 +54,8 @@ public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, Ca
             {
                 return Error.KeyExists;
             }
-            return true;
+
+            return Result<Error>.Ok;
         }
         catch (OverflowException error)
         {
