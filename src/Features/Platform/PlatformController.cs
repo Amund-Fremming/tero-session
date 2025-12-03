@@ -10,6 +10,7 @@ namespace tero.session.src.Features.Platform;
 [Route("session")]
 public class PlatformController(
     ILogger<PlatformController> logger,
+    PlatformClient platformClient,
     GameSessionCache<SpinSession> spinCache,
     GameSessionCache<QuizSession> quizCache,
     HubConnectionManager<SpinSession> spinManager,
@@ -17,7 +18,7 @@ public class PlatformController(
 ) : ControllerBase
 {
     [HttpPost("initiate/{gameType}/{key}")]
-    public IActionResult InitiateGameSession(GameType gameType, string key, [FromBody] JsonElement value)
+    public async Task<IActionResult> InitiateGameSession(GameType gameType, string key, [FromBody] JsonElement value)
     {
         try
         {
@@ -33,8 +34,21 @@ public class PlatformController(
         }
         catch (Exception error)
         {
-            // TODO - system log 
             logger.LogError(error, nameof(InitiateGameSession));
+            var log = LogBuilder.New()
+                .WithAction(LogAction.Other)
+                .WithCeverity(LogCeverity.Warning)
+                .WithFileName("InitiateGameSession")
+                .WithDescription("PlatformController catched a error")
+                .WithMetadata(error)
+                .Build();
+
+            var result = await platformClient.CreateSystemLog(log);
+            if (result.IsErr())
+            {
+                logger.LogError("Failed to write system log: {Error}", result.Err());
+            }
+
             return StatusCode(500, "Internal server error II");
         }
     }

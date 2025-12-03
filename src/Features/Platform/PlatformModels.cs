@@ -70,11 +70,11 @@ public enum LogCeverity
 
 public class LogBuilder
 {
-    public LogAction? Action { get; set; }
-    public LogCeverity? Ceverity { get; set; }
-    public string? Description { get; set; }
-    public string? FileName { get; set; }
-    public object? Metadata { get; set; }
+    private LogAction? Action { get; set; }
+    private LogCeverity? Ceverity { get; set; }
+    private string? Description { get; set; }
+    private string? FileName { get; set; }
+    private object? Metadata { get; set; }
 
     public static LogBuilder New() => new();
 
