@@ -113,7 +113,7 @@ public class CacheCleanupJob(
                             new Exception($"Failed to remove entry in connection manager: {removeResult.Err()}"),
                             LogCeverity.Warning
                         );
-                        logger.LogError("Failed to remove entry in conneciton manager: {Error}", result.Err());
+                        logger.LogError("Failed to remove entry in connection manager: {Error}", result.Err());
                     }
                 }
             }

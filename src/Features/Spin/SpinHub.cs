@@ -40,7 +40,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
                     new Exception("Failed to get disconnecting users data to gracefully remove"),
                     LogCeverity.Warning
                 );
-                logger.LogError("Failed to get diconnecting users data to gracefully remove");
+                logger.LogError("Failed to get disconnecting users data to gracefully remove");
                 await base.OnDisconnectedAsync(exception);
                 return;
             }
