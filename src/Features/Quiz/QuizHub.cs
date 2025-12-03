@@ -19,7 +19,7 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
         }
         catch (Exception error)
         {
-            // TODO - system log 
+            await platformClient.LogToBackend(error, LogCeverity.Warning);
             logger.LogError(error, nameof(OnConnectedAsync));
         }
     }
@@ -39,7 +39,10 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
             var option = result.Unwrap();
             if (option.IsNone())
             {
-                // TODO - system log
+                await platformClient.LogToBackend(
+                    new Exception("Failed to get disconnecting users data to gracefully remove"),
+                    LogCeverity.Warning
+                );
                 logger.LogError("Failed to get diconnecting users data to gracefully remove");
                 await base.OnDisconnectedAsync(exception);
                 return;
@@ -51,7 +54,7 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
         }
         catch (Exception error)
         {
-            // TODO - system log 
+            await platformClient.LogToBackend(error, LogCeverity.Warning);
             logger.LogError(error, nameof(OnConnectedAsync));
         }
     }
@@ -72,7 +75,7 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
         }
         catch (Exception error)
         {
-            // TODO - system log 
+            await platformClient.LogToBackend(error, LogCeverity.Warning);
             logger.LogError(error, nameof(OnConnectedAsync));
         }
     }
@@ -104,7 +107,7 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
         }
         catch (Exception error)
         {
-            // TODO - system log
+            await platformClient.LogToBackend(error, LogCeverity.Critical);
             logger.LogError(error, nameof(OnConnectedAsync));
         }
     }

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
+using tero.session.src.Features.Platform;
 using tero.session.src.Features.Quiz;
 using tero.session.src.Features.Spin;
 
@@ -11,7 +12,8 @@ public class CacheCleanupJob(
     HubConnectionManager<SpinSession> spinManager,
     HubConnectionManager<QuizSession> quizManager,
     IHubContext<SpinHub> spinHub,
-    IHubContext<QuizHub> quizHub
+    IHubContext<QuizHub> quizHub,
+    PlatformClient platformClient
 ) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -44,7 +46,7 @@ public class CacheCleanupJob(
             }
             catch (Exception error)
             {
-                // TODO - system log
+                await platformClient.LogToBackend(error, LogCeverity.Critical);
                 logger.LogError(error, "CacheCleanupJob");
             }
         }
@@ -63,7 +65,10 @@ public class CacheCleanupJob(
                     var result = await cache.Remove(key);
                     if (result.IsErr())
                     {
-                        // TODO - system log
+                        await platformClient.LogToBackend(
+                            new Exception($"Background cleanup failed to remove entry from cache: {result.Err()}"),
+                            LogCeverity.Warning
+                        );
                         logger.LogError("Background cleanup failed to remove entry from cache");
                     }
 
@@ -75,7 +80,7 @@ public class CacheCleanupJob(
         }
         catch (Exception error)
         {
-            // TODO - system log
+            await platformClient.LogToBackend(error, LogCeverity.Critical);
             logger.LogError(error, nameof(CleanupCache));
         }
     }
@@ -92,7 +97,10 @@ public class CacheCleanupJob(
                     var result = await cache.Upsert(info.GameKey, session => session.Cleanup(info.UserId));
                     if (result.IsErr())
                     {
-                        // TODO - system log 
+                        await platformClient.LogToBackend(
+                            new Exception($"Failed to cleanup session for user id {info.UserId} - {result.Err()}"),
+                            LogCeverity.Warning
+                        );
                         logger.LogError("Failed to cleanup session for user id {Guid} - {Error}", info.UserId, result.Err());
                     }
 
@@ -101,7 +109,10 @@ public class CacheCleanupJob(
 
                     if (removeResult.IsErr())
                     {
-                        // TODO - system log 
+                        await platformClient.LogToBackend(
+                            new Exception($"Failed to remove entry in connection manager: {removeResult.Err()}"),
+                            LogCeverity.Warning
+                        );
                         logger.LogError("Failed to remove entry in conneciton manager: {Error}", result.Err());
                     }
                 }
@@ -109,7 +120,7 @@ public class CacheCleanupJob(
         }
         catch (Exception error)
         {
-            // TODO - system log 
+            await platformClient.LogToBackend(error, LogCeverity.Critical);
             logger.LogError(error, "CleanupManager: ICleanuppable");
         }
     }
@@ -128,7 +139,7 @@ public class CacheCleanupJob(
         }
         catch (Exception error)
         {
-            // TODO - system log
+            await platformClient.LogToBackend(error, LogCeverity.Critical);
             logger.LogError(error, nameof(CleanupManager));
         }
     }

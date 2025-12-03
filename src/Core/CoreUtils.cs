@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.SignalR;
+using tero.session.src.Features.Platform;
 
 namespace tero.session.src.Core;
 
@@ -37,7 +38,7 @@ public static class CoreUtils
         }
     }
 
-    public static async Task Broadcast(IHubCallerClients clients, Error error, ILogger logger)
+    public static async Task Broadcast(IHubCallerClients clients, Error error, ILogger logger, PlatformClient? platformClient = null)
     {
         try
         {
@@ -81,7 +82,10 @@ public static class CoreUtils
         }
         catch (Exception ex)
         {
-            // TODO - system log
+            if (platformClient != null)
+            {
+                await platformClient.LogToBackend(ex, LogCeverity.Warning);
+            }
             logger.LogError(ex, nameof(Broadcast));
         }
     }

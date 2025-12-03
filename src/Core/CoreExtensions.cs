@@ -1,3 +1,6 @@
+using System.Runtime.CompilerServices;
+using tero.session.src.Features.Platform;
+
 namespace tero.session.src.Core;
 
 public static class CoreExtensions
@@ -17,5 +20,62 @@ public static class CoreExtensions
         }
 
         return list;
+    }
+
+    public static async Task LogToBackend(
+        this PlatformClient platformClient,
+        Exception exception,
+        LogCeverity severity,
+        [CallerFilePath] string filePath = "",
+        [CallerMemberName] string memberName = ""
+    )
+    {
+        try
+        {
+            var fileName = Path.GetFileName(filePath);
+            var log = LogBuilder.New()
+                .WithCeverity(severity)
+                .WithDescription($"{exception.GetType().Name}: {exception.Message}")
+                .WithFileName(fileName)
+                .WithMetadata(new
+                {
+                    Method = memberName,
+                    ExceptionType = exception.GetType().FullName,
+                    StackTrace = exception.StackTrace
+                })
+                .Build();
+
+            await platformClient.CreateSystemLog(log);
+        }
+        catch
+        {
+            // Silently fail to avoid infinite loops and cascading failures
+        }
+    }
+
+    public static void LogToBackendFireAndForget(
+        this PlatformClient? platformClient,
+        Exception exception,
+        LogCeverity severity,
+        [CallerFilePath] string filePath = "",
+        [CallerMemberName] string memberName = ""
+    )
+    {
+        if (platformClient == null)
+        {
+            return;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await platformClient.LogToBackend(exception, severity, filePath, memberName);
+            }
+            catch
+            {
+                // Silently fail to avoid infinite loops and cascading failures
+            }
+        });
     }
 }

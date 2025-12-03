@@ -1,20 +1,23 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using tero.session.src.Core;
+using tero.session.src.Features.Platform;
 
 namespace tero.session.tests.Core;
 
 public class GameSessionCacheTests
 {
     private readonly Mock<ILogger<GameSessionCache<TestSession>>> _loggerMock;
+    private readonly Mock<PlatformClient> _platformClientMock;
     private readonly CacheTTLOptions _options;
     private readonly GameSessionCache<TestSession> _cache;
 
     public GameSessionCacheTests()
     {
         _loggerMock = new Mock<ILogger<GameSessionCache<TestSession>>>();
+        _platformClientMock = new Mock<PlatformClient>();
         _options = new CacheTTLOptions { SessionMinuttes = 10, ManagerMinuttes = 30 };
-        _cache = new GameSessionCache<TestSession>(_loggerMock.Object, _options);
+        _cache = new GameSessionCache<TestSession>(_loggerMock.Object, _options, null!); // PlatformClient is optional for testing
     }
 
     [Fact]

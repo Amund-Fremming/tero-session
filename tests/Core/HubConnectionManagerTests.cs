@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using tero.session.src.Core;
+using tero.session.src.Features.Platform;
 
 namespace tero.session.tests.Core;
 
@@ -14,7 +15,8 @@ public class HubConnectionManagerTests
         _options = new CacheTTLOptions { SessionMinuttes = 10, ManagerMinuttes = 30 };
         _manager = new HubConnectionManager<TestSession>(
             Mock.Of<ILogger<HubConnectionManager<TestSession>>>(),
-            _options
+            _options,
+            null! // PlatformClient is optional for testing
         );
     }
 

@@ -1,8 +1,9 @@
 using System.Collections.Concurrent;
+using tero.session.src.Features.Platform;
 
 namespace tero.session.src.Core;
 
-public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, CacheTTLOptions options)
+public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, CacheTTLOptions options, PlatformClient platformClient)
 {
     private readonly TimeSpan _ttl = TimeSpan.FromMinutes(options.ManagerMinuttes);
     private readonly ConcurrentDictionary<string, HubInfo> _manager = [];
@@ -38,7 +39,7 @@ public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, Ca
         }
         catch (Exception error)
         {
-            // TODO - system log 
+            platformClient.LogToBackendFireAndForget(error, LogCeverity.Warning);
             logger.LogError(error, nameof(Get));
             return Error.System;
         }
@@ -59,13 +60,13 @@ public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, Ca
         }
         catch (OverflowException error)
         {
-            // TODO - system log 
+            platformClient.LogToBackendFireAndForget(error, LogCeverity.Critical);
             logger.LogError(error, "Insert - Cache overflow");
             return Error.Overflow;
         }
         catch (Exception error)
         {
-            // TODO - system log 
+            platformClient.LogToBackendFireAndForget(error, LogCeverity.Warning);
             logger.LogError(error, nameof(Insert));
             return Error.System;
         }
@@ -94,7 +95,7 @@ public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, Ca
         }
         catch (Exception error)
         {
-            // TODO - system log 
+            platformClient.LogToBackendFireAndForget(error, LogCeverity.Warning);
             logger.LogError(error, nameof(Remove));
             return Error.System;
         }

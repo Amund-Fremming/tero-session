@@ -13,11 +13,12 @@ public class PlatformController(
     GameSessionCache<SpinSession> spinCache,
     GameSessionCache<QuizSession> quizCache,
     HubConnectionManager<SpinSession> spinManager,
-    HubConnectionManager<QuizSession> quizManager
+    HubConnectionManager<QuizSession> quizManager,
+    PlatformClient platformClient
 ) : ControllerBase
 {
     [HttpPost("initiate/{gameType}/{key}")]
-    public IActionResult InitiateGameSession(GameType gameType, string key, [FromBody] JsonElement value)
+    public async Task<IActionResult> InitiateGameSession(GameType gameType, string key, [FromBody] JsonElement value)
     {
         try
         {
@@ -33,7 +34,7 @@ public class PlatformController(
         }
         catch (Exception error)
         {
-            // TODO - system log 
+            await platformClient.LogToBackend(error, LogCeverity.Critical);
             logger.LogError(error, nameof(InitiateGameSession));
             return StatusCode(500, "Internal server error II");
         }
@@ -61,7 +62,7 @@ public class PlatformController(
         }
         catch (Exception error)
         {
-            // TODO - system log 
+            await platformClient.LogToBackend(error, LogCeverity.Critical);
             logger.LogError(error, nameof(CacheInfo));
             return StatusCode(500, "Internal server error II");
         }

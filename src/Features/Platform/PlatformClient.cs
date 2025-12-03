@@ -37,14 +37,14 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
         }
         catch (HttpRequestException error)
         {
-            // TODO - system log 
             logger.LogError(error, nameof(PersistGame));
+            // Cannot log to backend here to avoid potential infinite loop
             return Error.Http;
         }
         catch (Exception error)
         {
-            // TODO - system log 
             logger.LogError(error, nameof(PersistGame));
+            // Cannot log to backend here to avoid potential infinite loop
             return Error.System;
         }
     }
@@ -85,14 +85,14 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
         }
         catch (HttpRequestException error)
         {
-            // TODO - system log 
             logger.LogError(error, nameof(CreateSystemLog));
+            // Cannot log to backend here to avoid infinite loop
             return Error.Http;
         }
         catch (Exception error)
         {
-            // TODO - system log
             logger.LogError(error, "Error creating system log");
+            // Cannot log to backend here to avoid infinite loop
             return Error.System;
         }
     }

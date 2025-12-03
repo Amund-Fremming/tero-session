@@ -2,10 +2,11 @@ using System.Net.Sockets;
 using System.Threading.Tasks.Dataflow;
 using Microsoft.AspNetCore.SignalR;
 using tero.session.src.Core;
+using tero.session.src.Features.Platform;
 
 namespace tero.session.src.Features.Spin;
 
-public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> manager, GameSessionCache<SpinSession> cache) : Hub
+public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> manager, GameSessionCache<SpinSession> cache, PlatformClient platformClient) : Hub
 {
     public override async Task OnConnectedAsync()
     {
@@ -16,7 +17,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
         }
         catch (Exception error)
         {
-            // TODO - system log
+            await platformClient.LogToBackend(error, LogCeverity.Warning);
             logger.LogError(error, nameof(OnConnectedAsync));
         }
     }
@@ -35,7 +36,10 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             var option = result.Unwrap();
             if (option.IsNone())
             {
-                // TODO - system log
+                await platformClient.LogToBackend(
+                    new Exception("Failed to get disconnecting users data to gracefully remove"),
+                    LogCeverity.Warning
+                );
                 logger.LogError("Failed to get diconnecting users data to gracefully remove");
                 await base.OnDisconnectedAsync(exception);
                 return;
@@ -66,7 +70,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
         }
         catch (Exception error)
         {
-            // TODO - system log
+            await platformClient.LogToBackend(error, LogCeverity.Warning);
             logger.LogError(error, nameof(OnDisconnectedAsync));
         }
     }
@@ -106,7 +110,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
         }
         catch (Exception error)
         {
-            // TODO - system log
+            await platformClient.LogToBackend(error, LogCeverity.Warning);
             logger.LogError(error, nameof(OnDisconnectedAsync));
         }
     }
@@ -132,7 +136,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
         }
         catch (Exception error)
         {
-            // TODO - system log
+            await platformClient.LogToBackend(error, LogCeverity.Warning);
             logger.LogError(error, nameof(OnConnectedAsync));
         }
     }
@@ -158,7 +162,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
         }
         catch (Exception error)
         {
-            // TODO - system log
+            await platformClient.LogToBackend(error, LogCeverity.Critical);
             logger.LogError(error, nameof(OnConnectedAsync));
         }
     }
@@ -206,7 +210,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
         }
         catch (Exception error)
         {
-            // TODO - system log
+            await platformClient.LogToBackend(error, LogCeverity.Warning);
             logger.LogError(error, nameof(OnConnectedAsync));
         }
     }
@@ -236,7 +240,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
         }
         catch (Exception error)
         {
-            // TODO - system log
+            await platformClient.LogToBackend(error, LogCeverity.Warning);
             logger.LogError(error, nameof(OnConnectedAsync));
         }
     }

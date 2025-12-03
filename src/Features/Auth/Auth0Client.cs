@@ -50,20 +50,20 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
         }
         catch (JsonException error)
         {
-            // TODO - system log 
             logger.LogError(error, nameof(FetchM2MToken));
+            // Cannot log to backend here due to circular dependency
             return Error.Json;
         }
         catch (HttpRequestException error)
         {
-            // TODO - system log 
             logger.LogError(error, nameof(FetchM2MToken));
+            // Cannot log to backend here due to circular dependency
             return Error.Http;
         }
         catch (Exception error)
         {
-            // TODO - system log 
             logger.LogError(error, nameof(FetchM2MToken));
+            // Cannot log to backend here due to circular dependency
             return Error.System;
         }
     }
@@ -95,8 +95,8 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
         }
         catch (Exception error)
         {
-            // TODO - system log 
             logger.LogError(error, nameof(GetToken));
+            // Cannot log to backend here due to circular dependency
             return Error.System;
         }
         finally

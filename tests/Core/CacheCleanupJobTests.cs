@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Moq;
 using tero.session.src.Core;
+using tero.session.src.Features.Platform;
 using tero.session.src.Features.Quiz;
 using tero.session.src.Features.Spin;
 
@@ -15,6 +16,7 @@ public class CacheCleanupJobTests
     private readonly Mock<IHubClients> _hubClientsMock;
     private readonly Mock<IClientProxy> _clientProxyMock;
     private readonly Mock<IGroupManager> _groupManagerMock;
+    private readonly Mock<PlatformClient> _platformClientMock;
     private readonly CacheTTLOptions _options;
 
     public CacheCleanupJobTests()
@@ -25,6 +27,7 @@ public class CacheCleanupJobTests
         _hubClientsMock = new Mock<IHubClients>();
         _clientProxyMock = new Mock<IClientProxy>();
         _groupManagerMock = new Mock<IGroupManager>();
+        _platformClientMock = new Mock<PlatformClient>();
 
         // Setup hub context to return clients and groups
         _spinHubMock.Setup(h => h.Clients).Returns(_hubClientsMock.Object);
@@ -44,19 +47,23 @@ public class CacheCleanupJobTests
         // Arrange & Act
         var spinCache = new GameSessionCache<SpinSession>(
             Mock.Of<ILogger<GameSessionCache<SpinSession>>>(),
-            _options
+            _options,
+            null! // PlatformClient is optional for testing
         );
         var quizCache = new GameSessionCache<QuizSession>(
             Mock.Of<ILogger<GameSessionCache<QuizSession>>>(),
-            _options
+            _options,
+            null! // PlatformClient is optional for testing
         );
         var spinManager = new HubConnectionManager<SpinSession>(
             Mock.Of<ILogger<HubConnectionManager<SpinSession>>>(),
-            _options
+            _options,
+            null! // PlatformClient is optional for testing
         );
         var quizManager = new HubConnectionManager<QuizSession>(
             Mock.Of<ILogger<HubConnectionManager<QuizSession>>>(),
-            _options
+            _options,
+            null! // PlatformClient is optional for testing
         );
 
         var job = new CacheCleanupJob(
@@ -66,7 +73,8 @@ public class CacheCleanupJobTests
             spinManager,
             quizManager,
             _spinHubMock.Object,
-            _quizHubMock.Object
+            _quizHubMock.Object,
+            null! // PlatformClient is optional for testing
         );
 
         // Assert
@@ -79,19 +87,23 @@ public class CacheCleanupJobTests
         // Arrange
         var spinCache = new GameSessionCache<SpinSession>(
             Mock.Of<ILogger<GameSessionCache<SpinSession>>>(),
-            _options
+            _options,
+            null! // PlatformClient is optional for testing
         );
         var quizCache = new GameSessionCache<QuizSession>(
             Mock.Of<ILogger<GameSessionCache<QuizSession>>>(),
-            _options
+            _options,
+            null! // PlatformClient is optional for testing
         );
         var spinManager = new HubConnectionManager<SpinSession>(
             Mock.Of<ILogger<HubConnectionManager<SpinSession>>>(),
-            _options
+            _options,
+            null! // PlatformClient is optional for testing
         );
         var quizManager = new HubConnectionManager<QuizSession>(
             Mock.Of<ILogger<HubConnectionManager<QuizSession>>>(),
-            _options
+            _options,
+            null! // PlatformClient is optional for testing
         );
 
         var job = new CacheCleanupJob(
@@ -101,7 +113,8 @@ public class CacheCleanupJobTests
             spinManager,
             quizManager,
             _spinHubMock.Object,
-            _quizHubMock.Object
+            _quizHubMock.Object,
+            null! // PlatformClient is optional for testing
         );
 
         // Act - Start and immediately stop
@@ -120,19 +133,23 @@ public class CacheCleanupJobTests
         // Arrange
         var spinCache = new GameSessionCache<SpinSession>(
             Mock.Of<ILogger<GameSessionCache<SpinSession>>>(),
-            _options
+            _options,
+            null! // PlatformClient is optional for testing
         );
         var quizCache = new GameSessionCache<QuizSession>(
             Mock.Of<ILogger<GameSessionCache<QuizSession>>>(),
-            _options
+            _options,
+            null! // PlatformClient is optional for testing
         );
         var spinManager = new HubConnectionManager<SpinSession>(
             Mock.Of<ILogger<HubConnectionManager<SpinSession>>>(),
-            _options
+            _options,
+            null! // PlatformClient is optional for testing
         );
         var quizManager = new HubConnectionManager<QuizSession>(
             Mock.Of<ILogger<HubConnectionManager<QuizSession>>>(),
-            _options
+            _options,
+            null! // PlatformClient is optional for testing
         );
 
         // Act
@@ -143,7 +160,8 @@ public class CacheCleanupJobTests
             spinManager,
             quizManager,
             _spinHubMock.Object,
-            _quizHubMock.Object
+            _quizHubMock.Object,
+            null! // PlatformClient is optional for testing
         );
 
         // Assert
@@ -156,19 +174,23 @@ public class CacheCleanupJobTests
         // Arrange
         var spinCache = new GameSessionCache<SpinSession>(
             Mock.Of<ILogger<GameSessionCache<SpinSession>>>(),
-            _options
+            _options,
+            null! // PlatformClient is optional for testing
         );
         var quizCache = new GameSessionCache<QuizSession>(
             Mock.Of<ILogger<GameSessionCache<QuizSession>>>(),
-            _options
+            _options,
+            null! // PlatformClient is optional for testing
         );
         var spinManager = new HubConnectionManager<SpinSession>(
             Mock.Of<ILogger<HubConnectionManager<SpinSession>>>(),
-            _options
+            _options,
+            null! // PlatformClient is optional for testing
         );
         var quizManager = new HubConnectionManager<QuizSession>(
             Mock.Of<ILogger<HubConnectionManager<QuizSession>>>(),
-            _options
+            _options,
+            null! // PlatformClient is optional for testing
         );
 
         // Act
@@ -179,7 +201,8 @@ public class CacheCleanupJobTests
             spinManager,
             quizManager,
             _spinHubMock.Object,
-            _quizHubMock.Object
+            _quizHubMock.Object,
+            null! // PlatformClient is optional for testing
         );
 
         // Assert - Verify job was created successfully
