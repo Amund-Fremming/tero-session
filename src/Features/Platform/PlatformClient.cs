@@ -20,6 +20,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
             var result = await auth0Client.GetToken();
             if (result.IsErr())
             {
+                // TODO CREATE LOG
                 return result.Err();
             }
 
@@ -106,6 +107,45 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
         catch (Exception error)
         {
             logger.LogError(error, "Error creating system log");
+            return Error.System;
+        }
+    }
+
+    /// <summary>
+    /// Only to be used for cleanups
+    /// </summary>
+    public async Task<Result<Error>> FreeGameKey(string key)
+    {
+        try
+        {
+            var result = await auth0Client.GetToken();
+            if (result.IsErr())
+            {
+                // TODO - write log
+                return result.Err();
+            }
+
+            var token = result.Unwrap();
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var content = new StringContent(
+                "application/json"
+            );
+
+            var response = await _client.PatchAsync($"/games/free-key/{key}", content);
+            if (!response.IsSuccessStatusCode)
+            {
+                var responseBody = await response.Content.ReadAsStringAsync();
+                logger.LogError("Failed to free game key, status code: {StatusCode}, response: {Response}", response.StatusCode, responseBody);
+                return Error.Http;
+            }
+
+            return Result<Error>.Ok;
+
+        }
+        catch(Exception error)
+        {
+            logger.LogError(error, nameof(FreeGameKey));
             return Error.System;
         }
     }
