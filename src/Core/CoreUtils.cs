@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.SignalR;
+using tero.session.src.Features.Platform;
 
 namespace tero.session.src.Core;
 
@@ -37,7 +38,7 @@ public static class CoreUtils
         }
     }
 
-    public static async Task Broadcast(IHubCallerClients clients, Error error, ILogger logger)
+    public static async Task Broadcast(IHubCallerClients clients, Error error, ILogger logger, PlatformClient platformClient)
     {
         try
         {
@@ -81,7 +82,15 @@ public static class CoreUtils
         }
         catch (Exception ex)
         {
-            // TODO - system log
+            var log = LogBuilder.New()
+                .WithAction(LogAction.Other)
+                .WithCeverity(LogCeverity.Critical)
+                .WithFunctionName("Broadcast")
+                .WithDescription("Broadcast error threw an exception")
+                .WithMetadata(ex)
+                .Build();
+
+            platformClient.CreateSystemLogAsync(log);
             logger.LogError(ex, nameof(Broadcast));
         }
     }

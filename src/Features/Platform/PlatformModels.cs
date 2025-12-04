@@ -96,7 +96,7 @@ public class LogBuilder
         return this;
     }
 
-    public LogBuilder WithFileName(string fileName)
+    public LogBuilder WithFunctionName(string fileName)
     {
         FileName = fileName;
         return this;

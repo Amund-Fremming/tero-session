@@ -19,7 +19,15 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
         }
         catch (Exception error)
         {
-            // TODO - system log 
+            var log = LogBuilder.New()
+                .WithAction(LogAction.Other)
+                .WithCeverity(LogCeverity.Critical)
+                .WithFunctionName(nameof(OnConnectedAsync))
+                .WithDescription("QuizHub OnConnectedAsync failed")
+                .WithMetadata(error)
+                .Build();
+
+            platformClient.CreateSystemLogAsync(log);
             logger.LogError(error, nameof(OnConnectedAsync));
         }
     }
@@ -32,15 +40,23 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
             var result = manager.Get(Context.ConnectionId);
             if (result.IsErr())
             {
-                await CoreUtils.Broadcast(Clients, result.Err(), logger);
+                await CoreUtils.Broadcast(Clients, result.Err(), logger, platformClient);
                 return;
             }
 
             var option = result.Unwrap();
             if (option.IsNone())
             {
-                // TODO - system log
+                var log = LogBuilder.New()
+                    .WithAction(LogAction.Delete)
+                    .WithCeverity(LogCeverity.Warning)
+                    .WithFunctionName(nameof(OnDisconnectedAsync))
+                    .WithDescription("Failed to get disconnecting user's data to gracefully remove")
+                    .Build();
+
+                platformClient.CreateSystemLogAsync(log);
                 logger.LogError("Failed to get diconnecting users data to gracefully remove");
+
                 await base.OnDisconnectedAsync(exception);
                 return;
             }
@@ -51,8 +67,16 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
         }
         catch (Exception error)
         {
-            // TODO - system log 
-            logger.LogError(error, nameof(OnConnectedAsync));
+            var log = LogBuilder.New()
+                .WithAction(LogAction.Delete)
+                .WithCeverity(LogCeverity.Critical)
+                .WithFunctionName(nameof(OnDisconnectedAsync))
+                .WithDescription("QuizHub OnDisconnectedAsync threw an exception")
+                .WithMetadata(error)
+                .Build();
+
+            platformClient.CreateSystemLogAsync(log);
+            logger.LogError(error, nameof(OnDisconnectedAsync));
         }
     }
 
@@ -63,7 +87,7 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
             var result = await cache.Upsert<QuizSession>(key, session => session.AddQuesiton(question));
             if (result.IsErr())
             {
-                await CoreUtils.Broadcast(Clients, result.Err(), logger);
+                await CoreUtils.Broadcast(Clients, result.Err(), logger, platformClient);
                 return;
             }
 
@@ -72,8 +96,16 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
         }
         catch (Exception error)
         {
-            // TODO - system log 
-            logger.LogError(error, nameof(OnConnectedAsync));
+            var log = LogBuilder.New()
+                .WithAction(LogAction.Create)
+                .WithCeverity(LogCeverity.Critical)
+                .WithFunctionName(nameof(AddQuestion))
+                .WithDescription("Add Question to QuizSession threw an exception")
+                .WithMetadata(error)
+                .Build();
+
+            platformClient.CreateSystemLogAsync(log);
+            logger.LogError(error, nameof(AddQuestion));
         }
     }
 
@@ -84,7 +116,7 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
             var result = await cache.Upsert<QuizSession>(key, session => session.Start());
             if (result.IsErr())
             {
-                await CoreUtils.Broadcast(Clients, result.Err(), logger);
+                await CoreUtils.Broadcast(Clients, result.Err(), logger, platformClient);
                 return;
             }
 
@@ -96,7 +128,7 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
             {
                 // log?
                 logger.LogError("Failed to remove game");
-                await CoreUtils.Broadcast(Clients, removeResult.Err(), logger);
+                await CoreUtils.Broadcast(Clients, removeResult.Err(), logger, platformClient);
                 return;
             }
 
@@ -104,8 +136,16 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
         }
         catch (Exception error)
         {
-            // TODO - system log
-            logger.LogError(error, nameof(OnConnectedAsync));
+            var log = LogBuilder.New()
+                .WithAction(LogAction.Update)
+                .WithCeverity(LogCeverity.Critical)
+                .WithFunctionName(nameof(StartGame))
+                .WithDescription("Start QuizSession threw an exception")
+                .WithMetadata(error)
+                .Build();
+
+            platformClient.CreateSystemLogAsync(log);
+            logger.LogError(error, nameof(StartGame));
         }
     }
 }

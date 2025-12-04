@@ -37,16 +37,33 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
         }
         catch (HttpRequestException error)
         {
-            // TODO - system log 
             logger.LogError(error, nameof(PersistGame));
             return Error.Http;
         }
         catch (Exception error)
         {
-            // TODO - system log 
             logger.LogError(error, nameof(PersistGame));
             return Error.System;
         }
+    }
+
+    public void CreateSystemLogAsync(CreateSyslogRequest request)
+    {
+        _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var result = await CreateSystemLog(request);
+                    if (result.IsErr())
+                    {
+                        logger.LogWarning("Fire-and-forget log failed: {Error}", result.Err());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Fire-and-forget log threw");
+                }
+            });
     }
 
     public async Task<Result<Error>> CreateSystemLog(CreateSyslogRequest request)
@@ -61,8 +78,6 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
 
             var token = result.Unwrap();
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-
 
             var json = JsonSerializer.Serialize(request, _jsonOptions);
             logger.LogDebug("Sending system log request: {Json}", json);
@@ -85,13 +100,11 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
         }
         catch (HttpRequestException error)
         {
-            // TODO - system log 
             logger.LogError(error, nameof(CreateSystemLog));
             return Error.Http;
         }
         catch (Exception error)
         {
-            // TODO - system log
             logger.LogError(error, "Error creating system log");
             return Error.System;
         }

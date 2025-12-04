@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.SignalR;
+using tero.session.src.Features.Platform;
 using tero.session.src.Features.Quiz;
 using tero.session.src.Features.Spin;
 
 namespace tero.session.src.Core;
 
 public class CacheCleanupJob(
+    PlatformClient platformClient,
     ILogger<CacheCleanupJob> logger,
     GameSessionCache<SpinSession> spinCache,
     GameSessionCache<QuizSession> quizCache,
@@ -44,7 +46,15 @@ public class CacheCleanupJob(
             }
             catch (Exception error)
             {
-                // TODO - system log
+                var log = LogBuilder.New()
+                    .WithAction(LogAction.Other)
+                    .WithCeverity(LogCeverity.Warning)
+                    .WithFunctionName("ExecuteAsync")
+                    .WithDescription("Cache cleanup job catched a error")
+                    .WithMetadata(error)
+                    .Build();
+
+                platformClient.CreateSystemLogAsync(log);
                 logger.LogError(error, "CacheCleanupJob");
             }
         }
@@ -63,7 +73,15 @@ public class CacheCleanupJob(
                     var result = await cache.Remove(key);
                     if (result.IsErr())
                     {
-                        // TODO - system log
+                        var log = LogBuilder.New()
+                            .WithAction(LogAction.Delete)
+                            .WithCeverity(LogCeverity.Warning)
+                            .WithFunctionName("CleanupCache")
+                            .WithDescription($"Failed to remove expired cache entry: {key}")
+                            .WithMetadata(new { Key = key, Error = result.Err().ToString() })
+                            .Build();
+
+                        platformClient.CreateSystemLogAsync(log);
                         logger.LogError("Background cleanup failed to remove entry from cache");
                     }
 
@@ -75,7 +93,15 @@ public class CacheCleanupJob(
         }
         catch (Exception error)
         {
-            // TODO - system log
+            var log = LogBuilder.New()
+                .WithAction(LogAction.Other)
+                .WithCeverity(LogCeverity.Critical)
+                .WithFunctionName("CleanupCache")
+                .WithDescription("Cache cleanup encountered critical error")
+                .WithMetadata(error)
+                .Build();
+
+            platformClient.CreateSystemLogAsync(log);
             logger.LogError(error, nameof(CleanupCache));
         }
     }
@@ -92,7 +118,15 @@ public class CacheCleanupJob(
                     var result = await cache.Upsert(info.GameKey, session => session.Cleanup(info.UserId));
                     if (result.IsErr())
                     {
-                        // TODO - system log 
+                        var log = LogBuilder.New()
+                            .WithAction(LogAction.Update)
+                            .WithCeverity(LogCeverity.Warning)
+                            .WithFunctionName("CleanupManager")
+                            .WithDescription($"Failed to cleanup session for user")
+                            .WithMetadata(new { UserId = info.UserId, Error = result.Err().ToString() })
+                            .Build();
+
+                        platformClient.CreateSystemLogAsync(log);
                         logger.LogError("Failed to cleanup session for user id {Guid} - {Error}", info.UserId, result.Err());
                     }
 
@@ -101,7 +135,15 @@ public class CacheCleanupJob(
 
                     if (removeResult.IsErr())
                     {
-                        // TODO - system log 
+                        var log = LogBuilder.New()
+                            .WithAction(LogAction.Delete)
+                            .WithCeverity(LogCeverity.Warning)
+                            .WithFunctionName(nameof(CleanupManager))
+                            .WithDescription("Failed to remove entry in connection manager")
+                            .WithMetadata(new { ConnectionId = connId, Error = removeResult.Err().ToString() })
+                            .Build();
+
+                        platformClient.CreateSystemLogAsync(log);
                         logger.LogError("Failed to remove entry in conneciton manager: {Error}", result.Err());
                     }
                 }
@@ -109,7 +151,15 @@ public class CacheCleanupJob(
         }
         catch (Exception error)
         {
-            // TODO - system log 
+            var log = LogBuilder.New()
+                .WithAction(LogAction.Other)
+                .WithCeverity(LogCeverity.Critical)
+                .WithFunctionName("CleanupManager")
+                .WithDescription("Manager cleanup with ICleanuppable encountered critical error")
+                .WithMetadata(error)
+                .Build();
+
+            platformClient.CreateSystemLogAsync(log);
             logger.LogError(error, "CleanupManager: ICleanuppable");
         }
     }
@@ -128,7 +178,15 @@ public class CacheCleanupJob(
         }
         catch (Exception error)
         {
-            // TODO - system log
+            var log = LogBuilder.New()
+                .WithAction(LogAction.Other)
+                .WithCeverity(LogCeverity.Critical)
+                .WithFunctionName("CleanupManager")
+                .WithDescription("Manager cleanup encountered critical error")
+                .WithMetadata(error)
+                .Build();
+
+            platformClient.CreateSystemLogAsync(log);
             logger.LogError(error, nameof(CleanupManager));
         }
     }

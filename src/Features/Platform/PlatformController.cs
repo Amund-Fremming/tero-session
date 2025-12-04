@@ -18,7 +18,7 @@ public class PlatformController(
 ) : ControllerBase
 {
     [HttpPost("initiate/{gameType}/{key}")]
-    public async Task<IActionResult> InitiateGameSession(GameType gameType, string key, [FromBody] JsonElement value)
+    public IActionResult InitiateGameSession(GameType gameType, string key, [FromBody] JsonElement value)
     {
         try
         {
@@ -34,30 +34,24 @@ public class PlatformController(
         }
         catch (Exception error)
         {
-            logger.LogError(error, nameof(InitiateGameSession));
             var log = LogBuilder.New()
                 .WithAction(LogAction.Other)
                 .WithCeverity(LogCeverity.Warning)
-                .WithFileName("InitiateGameSession")
+                .WithFunctionName("InitiateGameSession")
                 .WithDescription("PlatformController catched a error")
                 .WithMetadata(error)
                 .Build();
 
-            var result = await platformClient.CreateSystemLog(log);
-            if (result.IsErr())
-            {
-                logger.LogError("Failed to write system log: {Error}", result.Err());
-            }
-
-            return StatusCode(500, "Internal server error II");
+            platformClient.CreateSystemLogAsync(log);
+            logger.LogError(error, nameof(InitiateGameSession));
+            return StatusCode(500, "Internal server error");
         }
     }
 
-    public async Task<IActionResult> CacheInfo()
+    public IActionResult CacheInfo()
     {
         try
         {
-            await Task.Run(() => { });
             spinManager.GetType();
             quizManager.GetType();
             /*
@@ -75,9 +69,17 @@ public class PlatformController(
         }
         catch (Exception error)
         {
-            // TODO - system log 
+            var log = LogBuilder.New()
+                .WithAction(LogAction.Other)
+                .WithCeverity(LogCeverity.Warning)
+                .WithFunctionName("CacheInfo")
+                .WithDescription("CacheInfo catched a error")
+                .WithMetadata(error)
+                .Build();
+
+            platformClient.CreateSystemLogAsync(log);
             logger.LogError(error, nameof(CacheInfo));
-            return StatusCode(500, "Internal server error II");
+            return StatusCode(500, "Internal server error");
         }
     }
 }

@@ -1,8 +1,9 @@
 using System.Collections.Concurrent;
+using tero.session.src.Features.Platform;
 
 namespace tero.session.src.Core;
 
-public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, CacheTTLOptions options)
+public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, CacheTTLOptions options, PlatformClient platformClient)
 {
     private readonly TimeSpan _ttl = TimeSpan.FromMinutes(options.ManagerMinuttes);
     private readonly ConcurrentDictionary<string, HubInfo> _manager = [];
@@ -38,7 +39,15 @@ public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, Ca
         }
         catch (Exception error)
         {
-            // TODO - system log 
+            var log = LogBuilder.New()
+                .WithAction(LogAction.Other)
+                .WithCeverity(LogCeverity.Critical)
+                .WithFunctionName("Get")
+                .WithDescription("Get on HubConnectionManager threw an exception")
+                .WithMetadata(error)
+                .Build();
+
+            platformClient.CreateSystemLogAsync(log);
             logger.LogError(error, nameof(Get));
             return Error.System;
         }
@@ -59,13 +68,29 @@ public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, Ca
         }
         catch (OverflowException error)
         {
-            // TODO - system log 
+            var log = LogBuilder.New()
+                .WithAction(LogAction.Create)
+                .WithCeverity(LogCeverity.Critical)
+                .WithFunctionName("Insert")
+                .WithDescription("HubConnectionManager overflow on insert")
+                .WithMetadata(error)
+                .Build();
+
+            platformClient.CreateSystemLogAsync(log);
             logger.LogError(error, "Insert - Cache overflow");
             return Error.Overflow;
         }
         catch (Exception error)
         {
-            // TODO - system log 
+            var log = LogBuilder.New()
+                .WithAction(LogAction.Create)
+                .WithCeverity(LogCeverity.Critical)
+                .WithFunctionName("Insert")
+                .WithDescription("Insert into HubConnectionManager threw an exception")
+                .WithMetadata(error)
+                .Build();
+
+            platformClient.CreateSystemLogAsync(log);
             logger.LogError(error, nameof(Insert));
             return Error.System;
         }
@@ -94,7 +119,15 @@ public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, Ca
         }
         catch (Exception error)
         {
-            // TODO - system log 
+            var log = LogBuilder.New()
+                .WithAction(LogAction.Delete)
+                .WithCeverity(LogCeverity.Critical)
+                .WithFunctionName("Remove")
+                .WithDescription("Remove from HubConnectionManager threw an exception")
+                .WithMetadata(error)
+                .Build();
+
+            platformClient.CreateSystemLogAsync(log);
             logger.LogError(error, nameof(Remove));
             return Error.System;
         }
