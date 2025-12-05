@@ -36,7 +36,6 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
     {
         try
         {
-
             var result = manager.Get(Context.ConnectionId);
             if (result.IsErr())
             {
