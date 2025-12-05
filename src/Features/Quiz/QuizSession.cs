@@ -33,6 +33,7 @@ public class QuizSession
     [JsonPropertyName("times_played")]
     public int TimesPlayed { get; private set; }
 
+    [JsonConstructor]
     private QuizSession() { }
 
     public QuizSession AddQuesiton(string question)

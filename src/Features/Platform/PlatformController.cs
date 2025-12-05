@@ -17,16 +17,17 @@ public class PlatformController(
     HubConnectionManager<QuizSession> quizManager
 ) : ControllerBase
 {
-    [HttpPost("initiate/{gameType}/{key}")]
-    public IActionResult InitiateGameSession(GameType gameType, string key, [FromBody] JsonElement value)
+    [HttpPost("initiate/{gameType}")]
+    public IActionResult InitiateGameSession(GameType gameType, [FromBody] InitiateGameRequest request)
     {
         try
         {
-            logger.LogDebug("Recieved request for {GameType} with key: {string}", gameType, key);
+            var key = request.Key;
+            logger.LogInformation("Recieved request for {GameType} with key: {string}", gameType, key);
             var (statusCode, message) = gameType switch
             {
-                GameType.Spin => CoreUtils.InsertPayload(spinCache, key, value),
-                GameType.Quiz => CoreUtils.InsertPayload(quizCache, key, value),
+                GameType.Spin => CoreUtils.InsertPayload(spinCache, key, request.Value),
+                GameType.Quiz => CoreUtils.InsertPayload(quizCache, key, request.Value),
                 _ => (400, "Game type not supported")
             };
 

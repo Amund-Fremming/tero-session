@@ -78,6 +78,7 @@ public enum GameCategory
     Default
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum GameType
 {
     Spin,

@@ -44,7 +44,8 @@ public class SpinSession : IJoinableSession, ICleanuppable<SpinSession>
     [JsonPropertyName("players")]
     public Dictionary<Guid, int> Users { get; private set; } = [];
 
-    protected SpinSession() { }
+    [JsonConstructor]
+    private SpinSession() { }
 
     public List<Guid> GetUserIds() => Users.Select(u => u.Key).ToList().Shuffle();
     public int UsersCount() => Users.Count;

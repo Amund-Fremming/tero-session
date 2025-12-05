@@ -28,12 +28,16 @@ public static class CoreUtils
 
             return (200, "Game initialized");
         }
-        catch (JsonException)
+        catch (JsonException error)
         {
+            // TODO - system log
+            Console.WriteLine(error);
             return (500, "JSON error");
         }
-        catch (Exception)
+        catch (Exception error)
         {
+            // TODO - system log
+            Console.WriteLine(error);
             return (500, "Internal server error");
         }
     }

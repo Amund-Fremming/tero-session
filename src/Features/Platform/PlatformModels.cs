@@ -4,6 +4,15 @@ using System.Text.Json.Serialization;
 
 namespace tero.session.src.Features.Platform;
 
+public sealed record InitiateGameRequest
+{
+    [JsonPropertyName("key")]
+    public string Key { get; set; } = string.Empty;
+
+    [JsonPropertyName("value")]
+    public JsonElement Value { get; set; }
+}
+
 public sealed record CacheInfo
 {
     public int SpinSessionSize { get; set; }

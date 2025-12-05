@@ -23,12 +23,14 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
         {
             if (key == string.Empty || key is null || session is null)
             {
+                logger.LogInformation("Recieved a empty key");
                 return Error.NullReference;
             }
 
             var entry = new CachedSession<TSession>(session, _ttl);
             if (!_cache.TryAdd(key, entry))
             {
+                logger.LogWarning("Key already exists");
                 return Error.KeyExists;
             }
 
