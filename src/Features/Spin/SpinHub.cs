@@ -20,7 +20,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             var log = LogBuilder.New()
                 .WithAction(LogAction.Other)
                 .WithCeverity(LogCeverity.Critical)
-                .WithFunctionName(nameof(OnConnectedAsync))
+                .WithFunctionName("OnConnectedAsync")
                 .WithDescription("SpinHub OnConnectedAsync threw an exception")
                 .WithMetadata(error)
                 .Build();
@@ -47,7 +47,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
                 var log = LogBuilder.New()
                     .WithAction(LogAction.Delete)
                     .WithCeverity(LogCeverity.Warning)
-                    .WithFunctionName(nameof(OnDisconnectedAsync))
+                    .WithFunctionName("OnDisconnectedAsync")
                     .WithDescription("Failed to get disconnecting user's data to gracefully remove")
                     .Build();
 
@@ -86,7 +86,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             var log = LogBuilder.New()
                 .WithAction(LogAction.Delete)
                 .WithCeverity(LogCeverity.Critical)
-                .WithFunctionName(nameof(OnDisconnectedAsync))
+                .WithFunctionName("OnDisconnectedAsync")
                 .WithDescription("SpinHub OnDisconnectedAsync threw an exception")
                 .WithMetadata(error)
                 .Build();
@@ -134,7 +134,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             var log = LogBuilder.New()
                 .WithAction(LogAction.Create)
                 .WithCeverity(LogCeverity.Critical)
-                .WithFunctionName(nameof(AddUser))
+                .WithFunctionName("AddUser")
                 .WithDescription("add user to SpinSession threw an exception")
                 .WithMetadata(error)
                 .Build();
@@ -168,7 +168,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             var log = LogBuilder.New()
                 .WithAction(LogAction.Create)
                 .WithCeverity(LogCeverity.Critical)
-                .WithFunctionName(nameof(AddRound))
+                .WithFunctionName("AddRound")
                 .WithDescription("Add round to SpinSession threw an exception")
                 .WithMetadata(error)
                 .Build();
@@ -195,14 +195,19 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
 
             var round = result.Unwrap();
             await Clients.Caller.SendAsync("round", round);
-            // TODO - persist to platform
+
+            var persistResult = await platformClient.PersistGame();
+            if(persistResult.IsErr())
+            {
+                logger.LogError("Failed to persist game: {Error}", result.Err());
+            }
         }
         catch (Exception error)
         {
             var log = LogBuilder.New()
                 .WithAction(LogAction.Update)
                 .WithCeverity(LogCeverity.Critical)
-                .WithFunctionName(nameof(StartGame))
+                .WithFunctionName("StartGame")
                 .WithDescription("Start SpinSession threw an exception")
                 .WithMetadata(error)
                 .Build();
@@ -258,7 +263,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             var log = LogBuilder.New()
                 .WithAction(LogAction.Update)
                 .WithCeverity(LogCeverity.Critical)
-                .WithFunctionName(nameof(StartRound))
+                .WithFunctionName("StartRound")
                 .WithDescription("Start SpinSession round threw an exception")
                 .WithMetadata(error)
                 .Build();
@@ -296,7 +301,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             var log = LogBuilder.New()
                 .WithAction(LogAction.Update)
                 .WithCeverity(LogCeverity.Critical)
-                .WithFunctionName(nameof(NextRound))
+                .WithFunctionName("NextRound")
                 .WithDescription("Next SpinSession round threw an exception")
                 .WithMetadata(error)
                 .Build();

@@ -38,6 +38,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogError("Failed to persist game, status code: {StatusCode}", response.StatusCode);
+                // TODO log
                 return Error.Http;
             }
 
@@ -136,7 +137,14 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
             var result = await auth0Client.GetToken();
             if (result.IsErr())
             {
-                // TODO - write log
+                var log = LogBuilder.New()
+                    .WithAction(LogAction.Update)
+                    .WithCeverity(LogCeverity.Warning)
+                    .WithDescription("Failed to free game key (done on cache cleanup)")
+                    .WithMetadata(new KeyValuePair<string, string>("game_key", key))
+                    .Build();
+
+                CreateSystemLogAsync(log);
                 return result.Err();
             }
 

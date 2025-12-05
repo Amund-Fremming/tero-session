@@ -6,7 +6,7 @@ namespace tero.session.src.Core;
 
 public static class CoreUtils
 {
-    public static (int, string) InsertPayload<TSession>(GameSessionCache<TSession> cache, string key, JsonElement value)
+    public static (int, string) InsertPayload<TSession>(PlatformClient platformClient, GameSessionCache<TSession> cache, string key, JsonElement value)
     {
         try
         {
@@ -28,16 +28,17 @@ public static class CoreUtils
 
             return (200, "Game initialized");
         }
-        catch (JsonException error)
-        {
-            // TODO - system log
-            Console.WriteLine(error);
-            return (500, "JSON error");
-        }
         catch (Exception error)
         {
-            // TODO - system log
-            Console.WriteLine(error);
+            var log = LogBuilder.New()
+                .WithAction(LogAction.Update)
+                .WithCeverity(LogCeverity.Critical)
+                .WithFunctionName("InsertPayload")
+                .WithDescription("Insert payload to cache threw an exception")
+                .WithMetadata(error)
+                .Build();
+
+            platformClient.CreateSystemLogAsync(log); 
             return (500, "Internal server error");
         }
     }

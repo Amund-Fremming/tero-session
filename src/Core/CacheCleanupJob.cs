@@ -85,7 +85,6 @@ public class CacheCleanupJob(
                         logger.LogError("Background cleanup failed to remove entry from cache");
                     }
 
-                    // TODO - make frontend call disconnect on this action
                     await hub.Clients.Groups(key).SendAsync("disconnect", "Spillet har blitt avsluttet");
 
                     var freeResult = await platformClient.FreeGameKey(key);

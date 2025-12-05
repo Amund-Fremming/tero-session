@@ -10,11 +10,7 @@ public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, Ca
 
     public ConcurrentDictionary<string, HubInfo> GetCopy() => new(_manager);
 
-    public Result<int, Error> Size()
-    {
-        // TODO - implement
-        return 0;
-    }
+    public int Size() => _manager.Count;
 
     public Result<Option<HubInfo>, Error> Get(string connectionId)
     {

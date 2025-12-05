@@ -13,9 +13,6 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
         {
             await base.OnConnectedAsync();
             logger.LogDebug("Client connected to QuizSession");
-
-            // TODO - remove
-            platformClient.GetType();
         }
         catch (Exception error)
         {
@@ -131,7 +128,11 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
                 return;
             }
 
-            // TODO - persist game to platform
+            var persistResult = await platformClient.PersistGame();
+            if(persistResult.IsErr())
+            {
+
+            }
         }
         catch (Exception error)
         {

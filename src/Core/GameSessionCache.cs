@@ -11,11 +11,7 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
 
     public ConcurrentDictionary<string, CachedSession<TSession>> GetCopy() => new(_cache);
 
-    public Result<int, Error> Size()
-    {
-        // TODO - implement
-        return 0;
-    }
+    public int Size() => _cache.Count;
 
     public Result<Error> Insert(string key, TSession session)
     {
