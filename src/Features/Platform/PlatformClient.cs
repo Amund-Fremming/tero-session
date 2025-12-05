@@ -20,6 +20,14 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
             var result = await auth0Client.GetToken();
             if (result.IsErr())
             {
+                var log = LogBuilder.New()
+                    .WithAction(LogAction.Other)
+                    .WithCeverity(LogCeverity.Critical)
+                    .WithFunctionName("PersistGame: Comming from Auth0Client - GetToken")
+                    .WithDescription("Failed to get Auth0 token")
+                    .Build();
+
+                CreateSystemLogAsync(log);
                 return result.Err();
             }
 
@@ -73,6 +81,14 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
             var result = await auth0Client.GetToken();
             if (result.IsErr())
             {
+                var log = LogBuilder.New()
+                    .WithAction(LogAction.Other)
+                    .WithCeverity(LogCeverity.Critical)
+                    .WithFunctionName("PersistGame: Comming from Auth0Client - GetToken")
+                    .WithDescription("Failed to get Auth0 token")
+                    .Build();
+
+                CreateSystemLogAsync(log);
                 return result.Err();
             }
 

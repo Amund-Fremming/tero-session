@@ -14,7 +14,7 @@ public static class AuthServiceExtension
         });
 
         services.Configure<Auth0Options>(configuration.GetSection("Auth0"));
-        services.AddScoped<Auth0Client>();
+        services.AddSingleton<Auth0Client>();
 
         return services;
     }

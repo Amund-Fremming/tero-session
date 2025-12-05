@@ -6,7 +6,7 @@ using tero.session.src.Features.Platform;
 
 namespace tero.session.src.Features.Auth;
 
-public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Client> logger, IOptions<Auth0Options> options, PlatformClient platformClient)
+public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Client> logger, IOptions<Auth0Options> options)
 {
     private readonly HttpClient _client = httpClientFactory.CreateClient(nameof(Auth0Client));
     private readonly Auth0Options _options = options.Value;
@@ -51,43 +51,16 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
         }
         catch (JsonException error)
         {
-            var log = LogBuilder.New()
-                .WithAction(LogAction.Other)
-                .WithCeverity(LogCeverity.Critical)
-                .WithFunctionName("FetchM2MToken")
-                .WithDescription("JsonException while fetching Auth0 M2M token")
-                .WithMetadata(error)
-                .Build();
-
-            platformClient.CreateSystemLogAsync(log);
             logger.LogError(error, nameof(FetchM2MToken));
             return Error.Json;
         }
         catch (HttpRequestException error)
         {
-            var log = LogBuilder.New()
-                .WithAction(LogAction.Other)
-                .WithCeverity(LogCeverity.Critical)
-                .WithFunctionName("FetchM2MToken")
-                .WithDescription("HttpRequestException while fetching Auth0 M2M token")
-                .WithMetadata(error)
-                .Build();
-
-            platformClient.CreateSystemLogAsync(log);
             logger.LogError(error, nameof(FetchM2MToken));
             return Error.Http;
         }
         catch (Exception error)
         {
-            var log = LogBuilder.New()
-                .WithAction(LogAction.Other)
-                .WithCeverity(LogCeverity.Critical)
-                .WithFunctionName("FetchM2MToken")
-                .WithDescription("Unexpected exception while fetching Auth0 M2M token")
-                .WithMetadata(error)
-                .Build();
-
-            platformClient.CreateSystemLogAsync(log);
             logger.LogError(error, nameof(FetchM2MToken));
             return Error.System;
         }
@@ -120,15 +93,6 @@ public class Auth0Client(IHttpClientFactory httpClientFactory, ILogger<Auth0Clie
         }
         catch (Exception error)
         {
-            var log = LogBuilder.New()
-                .WithAction(LogAction.Other)
-                .WithCeverity(LogCeverity.Critical)
-                .WithFunctionName("GetToken")
-                .WithDescription("Failed to get Auth0 token")
-                .WithMetadata(error)
-                .Build();
-
-            platformClient.CreateSystemLogAsync(log);
             logger.LogError(error, nameof(GetToken));
             return Error.System;
         }

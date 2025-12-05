@@ -13,7 +13,7 @@ public static class PlatformServiceExtension
             client.DefaultRequestHeaders.Add("Accept", "application/json");
         });
 
-        services.AddScoped<PlatformClient>();
+        services.AddSingleton<PlatformClient>();
 
         return services;
     }
