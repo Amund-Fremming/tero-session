@@ -80,7 +80,7 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
     {
         try
         {
-            var result = await cache.Upsert<QuizSession>(key, session => session.AddQuesiton(question));
+            var result = await cache.Upsert(key, session => session.AddQuesiton(question));
             if (result.IsErr())
             {
                 await CoreUtils.Broadcast(Clients, result.Err(), logger, platformClient);
@@ -109,7 +109,7 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
     {
         try
         {
-            var result = await cache.Upsert<QuizSession>(key, session => session.Start());
+            var result = await cache.Upsert(key, session => session.Start());
             if (result.IsErr())
             {
                 await CoreUtils.Broadcast(Clients, result.Err(), logger, platformClient);
@@ -122,17 +122,12 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
             var removeResult = await cache.Remove(key);
             if (removeResult.IsErr())
             {
-                // log?
                 logger.LogError("Failed to remove game");
                 await CoreUtils.Broadcast(Clients, removeResult.Err(), logger, platformClient);
                 return;
             }
 
-            var persistResult = await platformClient.PersistGame();
-            if(persistResult.IsErr())
-            {
-
-            }
+            await platformClient.PersistGame();
         }
         catch (Exception error)
         {

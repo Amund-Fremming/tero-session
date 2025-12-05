@@ -37,8 +37,15 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
             var response = await _client.PostAsync("/games/persist", null);
             if (!response.IsSuccessStatusCode)
             {
+                var log = LogBuilder.New()
+                    .WithAction(LogAction.Other)
+                    .WithCeverity(LogCeverity.Critical)
+                    .WithFunctionName("PersistGame")
+                    .WithDescription("Failed to use http to persist game")
+                    .Build();
+
+                CreateSystemLogAsync(log);
                 logger.LogError("Failed to persist game, status code: {StatusCode}", response.StatusCode);
-                // TODO log
                 return Error.Http;
             }
 
@@ -46,11 +53,28 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
         }
         catch (HttpRequestException error)
         {
+             var log = LogBuilder.New()
+                    .WithAction(LogAction.Other)
+                    .WithCeverity(LogCeverity.Critical)
+                    .WithFunctionName("PersistGame")
+                    .WithDescription("Persist game threw an exception while persisting game")
+                    .WithMetadata(error)
+                    .Build();
+
+                CreateSystemLogAsync(log);
             logger.LogError(error, nameof(PersistGame));
             return Error.Http;
         }
         catch (Exception error)
         {
+             var log = LogBuilder.New()
+                    .WithAction(LogAction.Other)
+                    .WithCeverity(LogCeverity.Critical)
+                    .WithFunctionName("PersistGame")
+                    .WithDescription("Persist game threw an exception")
+                    .Build();
+
+                CreateSystemLogAsync(log);
             logger.LogError(error, nameof(PersistGame));
             return Error.System;
         }
@@ -158,6 +182,14 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
             var response = await _client.PatchAsync($"/games/free-key/{key}", content);
             if (!response.IsSuccessStatusCode)
             {
+                var log = LogBuilder.New()
+                    .WithAction(LogAction.Other)
+                    .WithCeverity(LogCeverity.Critical)
+                    .WithFunctionName("FreeGameKey")
+                    .WithDescription("Failed to use http to persist game")
+                    .Build();
+
+                CreateSystemLogAsync(log);
                 var responseBody = await response.Content.ReadAsStringAsync();
                 logger.LogError("Failed to free game key, status code: {StatusCode}, response: {Response}", response.StatusCode, responseBody);
                 return Error.Http;

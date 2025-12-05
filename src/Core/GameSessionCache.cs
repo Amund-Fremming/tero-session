@@ -26,6 +26,14 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
             var entry = new CachedSession<TSession>(session, _ttl);
             if (!_cache.TryAdd(key, entry))
             {
+                var log = LogBuilder.New()
+                    .WithAction(LogAction.Update)
+                    .WithCeverity(LogCeverity.Critical)
+                    .WithDescription("Tried adding session with existing key")
+                    .WithFunctionName("Insert")
+                    .Build();
+
+                platformClient.CreateSystemLogAsync(log);   
                 logger.LogWarning("Key already exists");
                 return Error.KeyExists;
             }
@@ -51,7 +59,7 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
             var log = LogBuilder.New()
                 .WithAction(LogAction.Create)
                 .WithCeverity(LogCeverity.Critical)
-                .WithFunctionName("Insert")
+                .WithFunctionName($"Insert - {typeof(TSession)}")
                 .WithDescription("Insert into GameSessionCache threw an exception")
                 .WithMetadata(error)
                 .Build();
@@ -78,6 +86,16 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
 
             if (!_cache.TryGetValue(key, out var entry))
             {
+                var log = LogBuilder.New()
+                    .WithAction(LogAction.Read)
+                    .WithCeverity(LogCeverity.Warning)
+                    .WithFunctionName($"Upsert - {typeof(TSession)}")
+                    .WithDescription("Game session not found in cache")
+                    .WithMetadata(new KeyValuePair<string, string>("game_key", key))
+                    .Build();
+                
+                platformClient.CreateSystemLogAsync(log);
+                logger.LogWarning("Game not found");
                 return Error.GameNotFound;
             }
 
@@ -137,6 +155,15 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
 
             if (!_cache.TryGetValue(key, out var entry))
             {
+                var log = LogBuilder.New()
+                    .WithAction(LogAction.Read)
+                    .WithCeverity(LogCeverity.Warning)
+                    .WithFunctionName($"Upsert - {typeof(TSession)}")
+                    .WithMetadata(new KeyValuePair<string, string>("game_key", key))
+                    .Build();
+                
+                platformClient.CreateSystemLogAsync(log);
+                logger.LogWarning("Game not found");
                 return Error.GameNotFound;
             }
 
@@ -166,7 +193,7 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
         }
     }
 
-    public async Task<Result<bool, Error>> Remove(string key)
+    public async Task<Result<Error>> Remove(string key)
     {
         SemaphoreSlim sem = null!;
 
@@ -186,7 +213,7 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
                 logger.LogWarning("Tried removing non exising session from the cache");
             }
 
-            return true;
+            return Result<Error>.Ok;
         }
         catch (OverflowException error)
         {

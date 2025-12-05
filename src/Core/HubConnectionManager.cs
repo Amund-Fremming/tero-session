@@ -57,6 +57,15 @@ public class HubConnectionManager<T>(ILogger<HubConnectionManager<T>> logger, Ca
             var added = _manager.TryAdd(connectionId, value);
             if (!added)
             {
+                var log = LogBuilder.New()
+                    .WithAction(LogAction.Update)
+                    .WithCeverity(LogCeverity.Warning)
+                    .WithFunctionName($"Insert - manager")
+                    .WithDescription("Key already exists in game cache")
+                    .Build();
+
+                platformClient.CreateSystemLogAsync(log);
+                logger.LogWarning("Key already exists in game cache");
                 return Error.KeyExists;
             }
 

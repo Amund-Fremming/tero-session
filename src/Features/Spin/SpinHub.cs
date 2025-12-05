@@ -195,12 +195,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
 
             var round = result.Unwrap();
             await Clients.Caller.SendAsync("round", round);
-
-            var persistResult = await platformClient.PersistGame();
-            if(persistResult.IsErr())
-            {
-                logger.LogError("Failed to persist game: {Error}", result.Err());
-            }
+            await platformClient.PersistGame();
         }
         catch (Exception error)
         {

@@ -86,12 +86,7 @@ public class CacheCleanupJob(
                     }
 
                     await hub.Clients.Groups(key).SendAsync("disconnect", "Spillet har blitt avsluttet");
-
-                    var freeResult = await platformClient.FreeGameKey(key);
-                    if(freeResult.IsErr())
-                    {
-                        logger.LogError("Failed to free game key");
-                    }
+                    await platformClient.FreeGameKey(key);
                 }
 
             }
