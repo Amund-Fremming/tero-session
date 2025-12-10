@@ -14,8 +14,10 @@ public class QuizSession
     [JsonPropertyName("host_id")]
     public Guid HostId { get; private set; }
 
-    [JsonPropertyName("host_id")]
+    [JsonPropertyName("name")]
     public string Name { get; private set; } = string.Empty;
+
+    [JsonPropertyName("description")]
     public string? Description { get; private set; }
 
     [JsonPropertyName("category")]

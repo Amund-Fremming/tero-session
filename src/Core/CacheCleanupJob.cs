@@ -78,7 +78,6 @@ public class CacheCleanupJob(
                             .WithCeverity(LogCeverity.Warning)
                             .WithFunctionName("CleanupCache")
                             .WithDescription($"Failed to remove expired cache entry: {key}")
-                            .WithMetadata(new { Key = key, Error = result.Err().ToString() })
                             .Build();
 
                         platformClient.CreateSystemLogAsync(log);
@@ -123,7 +122,6 @@ public class CacheCleanupJob(
                             .WithCeverity(LogCeverity.Warning)
                             .WithFunctionName("CleanupManager")
                             .WithDescription($"Failed to cleanup session for user")
-                            .WithMetadata(new { UserId = info.UserId, Error = result.Err().ToString() })
                             .Build();
 
                         platformClient.CreateSystemLogAsync(log);
@@ -140,7 +138,6 @@ public class CacheCleanupJob(
                             .WithCeverity(LogCeverity.Warning)
                             .WithFunctionName(nameof(CleanupManager))
                             .WithDescription("Failed to remove entry in connection manager")
-                            .WithMetadata(new { ConnectionId = connId, Error = removeResult.Err().ToString() })
                             .Build();
 
                         platformClient.CreateSystemLogAsync(log);

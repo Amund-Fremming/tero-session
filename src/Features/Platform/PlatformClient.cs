@@ -53,28 +53,28 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
         }
         catch (HttpRequestException error)
         {
-             var log = LogBuilder.New()
-                    .WithAction(LogAction.Other)
-                    .WithCeverity(LogCeverity.Critical)
-                    .WithFunctionName("PersistGame")
-                    .WithDescription("Persist game threw an exception while persisting game")
-                    .WithMetadata(error)
-                    .Build();
+            var log = LogBuilder.New()
+                   .WithAction(LogAction.Other)
+                   .WithCeverity(LogCeverity.Critical)
+                   .WithFunctionName("PersistGame")
+                   .WithDescription("Persist game threw an exception while persisting game")
+                   .WithMetadata(error)
+                   .Build();
 
-                CreateSystemLogAsync(log);
+            CreateSystemLogAsync(log);
             logger.LogError(error, nameof(PersistGame));
             return Error.Http;
         }
         catch (Exception error)
         {
-             var log = LogBuilder.New()
-                    .WithAction(LogAction.Other)
-                    .WithCeverity(LogCeverity.Critical)
-                    .WithFunctionName("PersistGame")
-                    .WithDescription("Persist game threw an exception")
-                    .Build();
+            var log = LogBuilder.New()
+                   .WithAction(LogAction.Other)
+                   .WithCeverity(LogCeverity.Critical)
+                   .WithFunctionName("PersistGame")
+                   .WithDescription("Persist game threw an exception")
+                   .Build();
 
-                CreateSystemLogAsync(log);
+            CreateSystemLogAsync(log);
             logger.LogError(error, nameof(PersistGame));
             return Error.System;
         }
@@ -165,7 +165,6 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
                     .WithAction(LogAction.Update)
                     .WithCeverity(LogCeverity.Warning)
                     .WithDescription("Failed to free game key (done on cache cleanup)")
-                    .WithMetadata(new KeyValuePair<string, string>("game_key", key))
                     .Build();
 
                 CreateSystemLogAsync(log);

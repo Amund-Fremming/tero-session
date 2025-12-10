@@ -19,7 +19,7 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
             var log = LogBuilder.New()
                 .WithAction(LogAction.Other)
                 .WithCeverity(LogCeverity.Critical)
-                .WithFunctionName(nameof(OnConnectedAsync))
+                .WithFunctionName("OnConnectedAsync")
                 .WithDescription("QuizHub OnConnectedAsync failed")
                 .WithMetadata(error)
                 .Build();
@@ -46,7 +46,7 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
                 var log = LogBuilder.New()
                     .WithAction(LogAction.Delete)
                     .WithCeverity(LogCeverity.Warning)
-                    .WithFunctionName(nameof(OnDisconnectedAsync))
+                    .WithFunctionName("OnDisconnectedAsync")
                     .WithDescription("Failed to get disconnecting user's data to gracefully remove")
                     .Build();
 
@@ -66,13 +66,36 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
             var log = LogBuilder.New()
                 .WithAction(LogAction.Delete)
                 .WithCeverity(LogCeverity.Critical)
-                .WithFunctionName(nameof(OnDisconnectedAsync))
+                .WithFunctionName("OnDisconnectedAsync")
                 .WithDescription("QuizHub OnDisconnectedAsync threw an exception")
                 .WithMetadata(error)
                 .Build();
 
             platformClient.CreateSystemLogAsync(log);
             logger.LogError(error, nameof(OnDisconnectedAsync));
+        }
+    }
+
+    public async Task ConnectToGroup(string key)
+    {
+        try
+        {
+            // TODO - add broadcaster for iterations?
+            logger.LogInformation("User added to group: {string}", key);
+            await Groups.AddToGroupAsync(Context.ConnectionId, key);
+        }
+        catch (Exception error)
+        {
+            var log = LogBuilder.New()
+                .WithAction(LogAction.Other)
+                .WithCeverity(LogCeverity.Critical)
+                .WithFunctionName("ConnectToGroup")
+                .WithDescription("Failed to Conenct user to SpinSession Hub group")
+                .WithMetadata(error)
+                .Build();
+
+            platformClient.CreateSystemLogAsync(log);
+            logger.LogError(error, nameof(AddQuestion));
         }
     }
 
@@ -87,15 +110,16 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
                 return;
             }
 
-            logger.LogDebug("Added question to QuizSession");
-
+            var session = result.Unwrap();
+            logger.LogInformation("Adding question: {string}, to game: {string}", question, key);
+            await Clients.Groups(key).SendAsync("iterations", session.Iterations);
         }
         catch (Exception error)
         {
             var log = LogBuilder.New()
                 .WithAction(LogAction.Create)
                 .WithCeverity(LogCeverity.Critical)
-                .WithFunctionName(nameof(AddQuestion))
+                .WithFunctionName("AddQuestion")
                 .WithDescription("Add Question to QuizSession threw an exception")
                 .WithMetadata(error)
                 .Build();
@@ -134,13 +158,13 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
             var log = LogBuilder.New()
                 .WithAction(LogAction.Update)
                 .WithCeverity(LogCeverity.Critical)
-                .WithFunctionName(nameof(StartGame))
+                .WithFunctionName("StartGame")
                 .WithDescription("Start QuizSession threw an exception")
                 .WithMetadata(error)
                 .Build();
 
             platformClient.CreateSystemLogAsync(log);
-            logger.LogError(error, nameof(StartGame));
+            logger.LogError(error, "StartGame");
         }
     }
 }

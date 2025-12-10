@@ -33,7 +33,7 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
                     .WithFunctionName("Insert")
                     .Build();
 
-                platformClient.CreateSystemLogAsync(log);   
+                platformClient.CreateSystemLogAsync(log);
                 logger.LogWarning("Key already exists");
                 return Error.KeyExists;
             }
@@ -91,9 +91,8 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
                     .WithCeverity(LogCeverity.Warning)
                     .WithFunctionName($"Upsert - {typeof(TSession)}")
                     .WithDescription("Game session not found in cache")
-                    .WithMetadata(new KeyValuePair<string, string>("game_key", key))
                     .Build();
-                
+
                 platformClient.CreateSystemLogAsync(log);
                 logger.LogWarning("Game not found");
                 return Error.GameNotFound;
@@ -159,9 +158,8 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
                     .WithAction(LogAction.Read)
                     .WithCeverity(LogCeverity.Warning)
                     .WithFunctionName($"Upsert - {typeof(TSession)}")
-                    .WithMetadata(new KeyValuePair<string, string>("game_key", key))
                     .Build();
-                
+
                 platformClient.CreateSystemLogAsync(log);
                 logger.LogWarning("Game not found");
                 return Error.GameNotFound;

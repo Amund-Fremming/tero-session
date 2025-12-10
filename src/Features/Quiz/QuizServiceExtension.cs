@@ -4,7 +4,7 @@ public static class QuizServiceExtension
 {
     public static WebApplication AddQuizHub(this WebApplication app)
     {
-        app.MapHub<QuizHub>($"hub/quiz");
+        app.MapHub<QuizHub>("hubs/quiz");
         return app;
     }
 }

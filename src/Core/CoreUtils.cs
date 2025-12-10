@@ -38,7 +38,7 @@ public static class CoreUtils
                 .WithMetadata(error)
                 .Build();
 
-            platformClient.CreateSystemLogAsync(log); 
+            platformClient.CreateSystemLogAsync(log);
             return (500, "Internal server error");
         }
     }
@@ -99,4 +99,12 @@ public static class CoreUtils
             logger.LogError(ex, nameof(Broadcast));
         }
     }
+
+    public static SerializableError ToSerializable(this Exception ex)
+        => new()
+        {
+            Type = ex.GetType().Name,
+            Message = ex.Message,
+            StackTrace = ex.StackTrace,
+        };
 }

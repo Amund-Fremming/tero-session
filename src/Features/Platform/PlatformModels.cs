@@ -1,6 +1,6 @@
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using tero.session.src.Core;
 
 namespace tero.session.src.Features.Platform;
 
@@ -111,9 +111,9 @@ public class LogBuilder
         return this;
     }
 
-    public LogBuilder WithMetadata(object metadata)
+    public LogBuilder WithMetadata(Exception error)
     {
-        Metadata = metadata;
+        Metadata = error.ToSerializable();
         return this;
     }
 

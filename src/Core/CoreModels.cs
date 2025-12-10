@@ -3,6 +3,13 @@ using System.Text.Json.Serialization;
 
 namespace tero.session.src.Core;
 
+public sealed record SerializableError
+{
+    public string Type { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public string? StackTrace { get; set; } = string.Empty;
+};
+
 public sealed record CachedSession<T>
 {
     private T Session { get; set; } = default!;
