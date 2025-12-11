@@ -13,7 +13,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
     private readonly HttpClient _client = httpClientFactory.CreateClient(nameof(PlatformClient));
     private readonly JsonSerializerOptions _jsonOptions = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
-    public async Task<Result<Error>> PersistGame()
+    public async Task<Result<Error>> PersistGame<T>(GameType gameType, string gameKey, T session)
     {
         try
         {
@@ -31,10 +31,19 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
                 return result.Err();
             }
 
+            var json = JsonSerializer.Serialize(session);
+            var content = new StringContent(
+                json,
+                Encoding.UTF8,
+                "application/json"
+            );
+
             var token = result.Unwrap();
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await _client.PostAsync("/games/persist", null);
+            var uri = $"/games/session/persist/{gameType}/{gameKey}";
+            var response = await _client.PostAsync(uri, content);
+
             if (!response.IsSuccessStatusCode)
             {
                 var log = LogBuilder.New()

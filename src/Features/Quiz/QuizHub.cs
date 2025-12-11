@@ -140,8 +140,8 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
                 return;
             }
 
-            var game = result.Unwrap();
-            await Clients.Caller.SendAsync("game", game);
+            var session = result.Unwrap();
+            await Clients.Caller.SendAsync("game", session);
 
             var removeResult = await cache.Remove(key);
             if (removeResult.IsErr())
@@ -151,7 +151,7 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
                 return;
             }
 
-            await platformClient.PersistGame();
+            await platformClient.PersistGame(GameType.Quiz, key, session);
         }
         catch (Exception error)
         {

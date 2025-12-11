@@ -2,6 +2,7 @@
 
 **First**
 
+- [ ] Broadcast errors in catch
 - [ ] Test impl with platform and app
 
 **Later**
