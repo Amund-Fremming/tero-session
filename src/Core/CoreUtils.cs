@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.SignalR;
 using tero.session.src.Features.Platform;
+using tero.session.src.Features.Quiz;
 
 namespace tero.session.src.Core;
 
@@ -10,16 +11,16 @@ public static class CoreUtils
     {
         try
         {
-            var spinSession = JsonSerializer.Deserialize<TSession>(value);
-            if (spinSession is null)
+            var session = JsonSerializer.Deserialize<TSession>(value);
+            if (session is null)
             {
                 return (400, "Invalid payload");
             }
 
-            var spinResult = cache.Insert(key, spinSession);
-            if (spinResult.IsErr())
+            var result = cache.Insert(key, session);
+            if (result.IsErr())
             {
-                return spinResult.Err() switch
+                return result.Err() switch
                 {
                     Error.KeyExists => (409, "Game key in use"),
                     _ => (500, "Internal server error")

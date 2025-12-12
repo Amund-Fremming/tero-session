@@ -6,34 +6,31 @@ namespace tero.session.src.Features.Quiz;
 public class QuizSession
 {
     [JsonPropertyName("base_id")]
-    public Guid BaseId { get; private set; }
+    public Guid BaseId { get; init; }
 
     [JsonPropertyName("quiz_id")]
-    public Guid QuizId { get; private set; }
-
-    [JsonPropertyName("host_id")]
-    public Guid HostId { get; private set; }
+    public Guid QuizId { get; init; }
 
     [JsonPropertyName("name")]
-    public string Name { get; private set; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
 
     [JsonPropertyName("description")]
-    public string? Description { get; private set; }
+    public string? Description { get; init; }
 
     [JsonPropertyName("category")]
-    public GameCategory Category { get; private set; }
+    public GameCategory Category { get; init; }
 
     [JsonPropertyName("iterations")]
-    public int Iterations { get; private set; }
+    public int Iterations { get; set; }
 
     [JsonPropertyName("current_iteration")]
-    public int CurrentIteration { get; private set; }
+    public int CurrentIteration { get; init; }
 
     [JsonPropertyName("questions")]
-    public List<string> Questions { get; private set; } = new();
+    public List<string> Questions { get; init; } = new();
 
     [JsonPropertyName("times_played")]
-    public int TimesPlayed { get; private set; }
+    public int TimesPlayed { get; init; }
 
     [JsonConstructor]
     private QuizSession() { }

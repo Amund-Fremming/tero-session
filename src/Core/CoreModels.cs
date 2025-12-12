@@ -71,6 +71,7 @@ public sealed record HubInfo
     public void SetTtl(TimeSpan ttl) => ExpiresAt = DateTime.Now.Add(ttl);
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum GameCategory
 {
     [JsonPropertyName("casual")]

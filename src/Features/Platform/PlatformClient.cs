@@ -31,12 +31,9 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
                 return result.Err();
             }
 
-            var json = JsonSerializer.Serialize(session);
-            var content = new StringContent(
-                json,
-                Encoding.UTF8,
-                "application/json"
-            );
+            var envelope = new { payload = session };
+            var json = JsonSerializer.Serialize(envelope);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var token = result.Unwrap();
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
