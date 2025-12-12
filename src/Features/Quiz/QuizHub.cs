@@ -141,7 +141,8 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
             }
 
             var session = result.Unwrap();
-            await Clients.Caller.SendAsync("game", session);
+            await Clients.Caller.SendAsync("session", session);
+            await Clients.OthersInGroup(key).SendAsync("state", "Game has started");
 
             var removeResult = await cache.Remove(key);
             if (removeResult.IsErr())
@@ -151,7 +152,11 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
                 return;
             }
 
-            await platformClient.PersistGame(GameType.Quiz, key, session);
+            var persistResult = await platformClient.PersistGame(GameType.Quiz, key, session);
+            if (persistResult.IsErr())
+            {
+                logger.LogError("Failed to persist game after starting");
+            }
         }
         catch (Exception error)
         {
