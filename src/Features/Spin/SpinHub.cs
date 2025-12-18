@@ -96,7 +96,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
         }
     }
 
-    public async Task AddUser(string key, Guid userId)
+    public async Task ConnectToGroup(string key, Guid userId)
     {
         try
         {
@@ -140,7 +140,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
                 .Build();
 
             platformClient.CreateSystemLogAsync(log);
-            logger.LogError(error, nameof(AddUser));
+            logger.LogError(error, nameof(ConnectToGroup));
         }
     }
 

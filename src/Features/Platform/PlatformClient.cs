@@ -184,7 +184,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
                 "application/json"
             );
 
-            var response = await _client.PatchAsync($"/games/free-key/{key}", content);
+            var response = await _client.PatchAsync($"/games/generic/free-key/{key}", content);
             if (!response.IsSuccessStatusCode)
             {
                 var log = LogBuilder.New()
