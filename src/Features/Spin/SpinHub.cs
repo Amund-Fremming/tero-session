@@ -1,6 +1,7 @@
 using System.Net.Sockets;
 using System.Threading.Tasks.Dataflow;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.ObjectPool;
 using tero.session.src.Core;
 using tero.session.src.Features.Platform;
 
@@ -193,9 +194,10 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
                 return;
             }
 
-            var round = result.Unwrap();
-            await Clients.Caller.SendAsync("round", round);
-            //await platformClient.PersistGame(GameType.Spin, key, session);
+            var session = result.Unwrap();
+            var roundText = session.GetRoundText();
+            await Clients.Caller.SendAsync("round_text", roundText);
+            await platformClient.PersistGame(GameType.Spin, key, session);
         }
         catch (Exception error)
         {
