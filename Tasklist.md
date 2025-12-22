@@ -2,6 +2,7 @@
 
 **First**
 
+- [ ] Semlocks on manager
 - [ ] Broadcast errors in catch
 - [ ] Test impl with platform and app
 

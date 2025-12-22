@@ -1,5 +1,6 @@
 using System.Threading.Tasks.Dataflow;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.ObjectPool;
 using tero.session.src.Core;
 using tero.session.src.Features.Platform;
 
@@ -43,6 +44,7 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
             var option = result.Unwrap();
             if (option.IsNone())
             {
+                // HERE IT FAILS
                 var log = LogBuilder.New()
                     .WithAction(LogAction.Delete)
                     .WithCeverity(LogCeverity.Warning)
@@ -80,7 +82,23 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
     {
         try
         {
-            // TODO - add broadcaster for iterations?
+            var result = await cache.Get(key);
+            if (result.IsErr())
+            {
+                await CoreUtils.Broadcast(Clients, result.Err(), logger, platformClient);
+                return;
+            }
+
+            var iterations = result.Unwrap().Iterations;
+            await Clients.Caller.SendAsync("iterations", iterations);
+
+            var managerResult = manager.Insert(Context.ConnectionId, new HubInfo(key));
+            if (managerResult.IsErr())
+            {
+                await CoreUtils.Broadcast(Clients, managerResult.Err(), logger, platformClient);
+                return;
+            }
+
             logger.LogInformation("User added to group: {string}", key);
             await Groups.AddToGroupAsync(Context.ConnectionId, key);
         }
@@ -133,6 +151,12 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
     {
         try
         {
+            if (key is null || key == string.Empty)
+            {
+                await CoreUtils.Broadcast(Clients, Error.NullReference, logger, platformClient);
+                return;
+            }
+
             var result = await cache.Upsert(key, session => session.Start());
             if (result.IsErr())
             {

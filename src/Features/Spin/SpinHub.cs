@@ -112,11 +112,10 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
                 return;
             }
 
-            var option = result.Unwrap();
-            if (option.IsSome())
+            var session = result.Unwrap();
+            if (session.IsHost(userId))
             {
-                var newHost = option.Unwrap();
-                await Clients.Group(key).SendAsync("host", newHost);
+                await Clients.Group(key).SendAsync("host", userId);
             }
 
             var insertResult = manager.Insert(Context.ConnectionId, new HubInfo(key, userId));

@@ -13,6 +13,48 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
 
     public int Size() => _cache.Count;
 
+    public async Task<Result<TSession, Error>> Get(string key)
+    {
+        SemaphoreSlim sem = null!;
+
+        try
+        {
+            if (key == string.Empty || key is null)
+            {
+                return Error.NullReference;
+            }
+
+            sem = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+            await sem.WaitAsync();
+
+            if (!_cache.TryGetValue(key, out var cacheEntry))
+            {
+                return Error.GameNotFound;
+            }
+
+            return cacheEntry.GetSession();
+        }
+        catch (Exception error)
+        {
+            var log = LogBuilder.New()
+                .WithAction(LogAction.Update)
+                .WithCeverity(LogCeverity.Critical)
+                .WithFunctionName("Get")
+                .WithDescription("Get cache entry")
+                .WithMetadata(error)
+                .Build();
+
+            platformClient.CreateSystemLogAsync(log);
+            logger.LogError(error, "Failed to get session cache entry");
+            return Error.System;
+        }
+        finally
+        {
+            sem?.Release();
+        }
+
+    }
+
     public Result<Error> Insert(string key, TSession session)
     {
         try

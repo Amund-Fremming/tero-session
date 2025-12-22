@@ -4,6 +4,15 @@ using tero.session.src.Core;
 
 namespace tero.session.src.Features.Platform;
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum ApiResponse
+{
+    Ok,
+    KeyExists,
+    InvalidJson,
+    Error
+}
+
 public sealed record InitiateGameRequest
 {
     [JsonPropertyName("key")]
@@ -50,6 +59,7 @@ public sealed record CreateSyslogRequest
     public object? Metadata { get; set; }
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum LogAction
 {
     [JsonPropertyName("create")]

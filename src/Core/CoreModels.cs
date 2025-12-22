@@ -59,6 +59,14 @@ public sealed record HubInfo
     public Guid UserId { get; set; }
     public DateTime ExpiresAt { get; set; }
 
+    /// Only use this for hubs where the disconnec function never user the user id
+    public HubInfo(string gameKey)
+    {
+        GameKey = gameKey;
+        UserId = Guid.NewGuid();
+        ExpiresAt = DateTime.Now;
+    }
+
     public HubInfo(string gameKey, Guid userId)
     {
         GameKey = gameKey;

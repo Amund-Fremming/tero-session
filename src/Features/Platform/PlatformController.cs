@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using tero.session.src.Core;
 using tero.session.src.Features.Quiz;
 using tero.session.src.Features.Spin;
@@ -24,14 +25,14 @@ public class PlatformController(
         {
             var key = request.Key;
             logger.LogInformation("Recieved request for {GameType} with key: {string}", gameType, key);
-            var (statusCode, message) = gameType switch
+            var (statusCode, response) = gameType switch
             {
                 GameType.Spin => CoreUtils.InsertPayload(platformClient, spinCache, key, request.Value),
                 GameType.Quiz => CoreUtils.InsertPayload(platformClient, quizCache, key, request.Value),
-                _ => (400, "Game type not supported")
+                _ => (400, ApiResponse.Error)
             };
 
-            return StatusCode(statusCode, message);
+            return StatusCode(statusCode, response);
         }
         catch (Exception error)
         {

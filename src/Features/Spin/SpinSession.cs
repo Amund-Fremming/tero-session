@@ -62,23 +62,28 @@ public class SpinSession : IJoinableSession, ICleanuppable<SpinSession>
         return Option<Guid>.None;
     }
 
-    public Option<Guid> AddUser(Guid userId)
+    public Result<SpinSession, Error> AddUser(Guid userId)
     {
+        if (State != SpinGameState.Initialized)
+        {
+            return Error.GameClosed;
+        }
+
         if (Users.Count == 0 || (Users.Count == 1 && Users.ContainsKey(userId)))
         {
             HostId = userId;
             Users.Add(userId, 0);
-            return Option<Guid>.Some(userId);
+            return this;
         }
 
         var exists = Users.ContainsKey(userId);
         if (exists)
         {
-            return Option<Guid>.None;
+            return this;
         }
 
         Users.Add(userId, 0);
-        return Option<Guid>.None;
+        return this;
     }
 
     public HashSet<Guid> GetSpinResult(int numPlayers)
@@ -114,6 +119,8 @@ public class SpinSession : IJoinableSession, ICleanuppable<SpinSession>
 
         return selected;
     }
+
+    public bool IsHost(Guid userId) => HostId == userId;
 
     public Result<SpinSession, Error> IncrementRound()
     {
