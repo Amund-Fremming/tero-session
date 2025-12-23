@@ -138,9 +138,9 @@ public class SpinSession : IJoinableSession, ICleanuppable<SpinSession>
 
     public bool IsHost(Guid userId) => HostId == userId;
 
-    public Result<SpinSession, Error> IncrementRound()
+    public Result<SpinSession, Error> NextRound()
     {
-        if (CurrentIteration == Iterations)
+        if (CurrentIteration >= Iterations - 1)
         {
             State = SpinGameState.Finished;
             return Error.GameFinished;
@@ -165,8 +165,7 @@ public class SpinSession : IJoinableSession, ICleanuppable<SpinSession>
         return this;
     }
 
-
-    public SpinSession Start()
+    public SpinSession StartGame()
     {
         CurrentIteration = 0;
         State = SpinGameState.RoundStarted;

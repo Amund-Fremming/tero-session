@@ -206,8 +206,8 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             }
 
             var session = result.Unwrap();
-            await Clients.Group(key).SendAsync("iterations", session.Iterations);
             logger.LogDebug("User added a round to SpinSession");
+            await Clients.Group(key).SendAsync("iterations", session.Iterations);
         }
         catch (Exception error)
         {
@@ -237,7 +237,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
 
             var result = await cache.Upsert(
                 key,
-                session => session.Start()
+                session => session.StartGame()
             );
 
             if (result.IsErr())
@@ -248,9 +248,13 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
 
             var session = result.Unwrap();
             var roundText = session.GetRoundText();
-            await Clients.Group(key).SendAsync("signal_start", true);
-            await Clients.Caller.SendAsync("round_text", roundText);
-            await platformClient.PersistGame(GameType.Spin, key, session);
+
+            await Task.WhenAll(
+                Clients.Group(key).SendAsync("state", session.State),
+                Clients.Group(key).SendAsync("signal_start", true),
+                Clients.Caller.SendAsync("round", roundText),
+                platformClient.PersistGame(GameType.Spin, key, session)
+            );
         }
         catch (Exception error)
         {
@@ -278,16 +282,21 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
                 return;
             }
 
-            var result = await cache.Upsert(key, session => session.Start());
+            var result = await cache.Get(key);
             if (result.IsErr())
             {
+                if (result.Err() == Error.GameFinished)
+                {
+                    await Clients.Group(key).SendAsync("state", SpinGameState.Finished);
+                    return;
+                }
                 await CoreUtils.Broadcast(Clients, result.Err(), logger, platformClient);
                 return;
             }
 
-            await Clients.Group(key).SendAsync("state", SpinGameState.RoundInProgress);
-
             var session = result.Unwrap();
+            await Clients.Group(key).SendAsync("state", SpinGameState.RoundInProgress);
+            await Clients.Caller.SendAsync("round_text", session.GetRoundText());
             var userIds = session.GetUserIds();
             const int selectedPerRound = 2;
             var selected = session.GetSpinResult(selectedPerRound);
@@ -298,31 +307,26 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             }
 
             var rng = new Random();
-            int spinRounds = rng.Next(2, 7);
+            int spinRounds = rng.Next(3, 8);
 
             for (var i = 0; i < spinRounds; i++)
             {
-                for (var j = 0; j < userIds.Count; j += selectedPerRound)
+                for (var j = 0; j < userIds.Count; j++)
                 {
-                    var batch = userIds.Skip(j).Take(selectedPerRound);
-                    foreach (var id in batch)
+                    var batch = new List<Guid>();
+                    for (var k = 0; k < selectedPerRound; k++)
                     {
-                        logger.LogInformation("Current selected user: {Guid}", id);
-                        await Clients.Group(key).SendAsync("selected", id);
+                        var userId = userIds[(j + k) % userIds.Count];
+                        batch.Add(userId);
                     }
 
-                    await Task.Delay(1500);
+                    await Clients.Group(key).SendAsync("selected", batch);
+                    await Task.Delay(500);
                 }
             }
 
-            var tasks = new List<Task>();
-            foreach (var id in selected)
-            {
-                var task = Clients.Group(key).SendAsync("selected", id);
-                tasks.Add(task);
-            }
-
-            await Task.WhenAll(tasks);
+            await Clients.Group(key).SendAsync("selected", selected);
+            await Clients.Group(key).SendAsync("state", SpinGameState.RoundFinished);
             logger.LogInformation("Round players selected for SpinSession");
         }
         catch (Exception error)
@@ -353,11 +357,16 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
 
             var result = await cache.Upsert(
                 key,
-                session => session.IncrementRound()
+                session => session.NextRound()
             );
 
             if (result.IsErr())
             {
+                if (result.Err() == Error.GameFinished)
+                {
+                    await Clients.Group(key).SendAsync("state", SpinGameState.Finished);
+                    return;
+                }
                 await CoreUtils.Broadcast(Clients, result.Err(), logger, platformClient);
                 return;
             }
