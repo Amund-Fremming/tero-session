@@ -6,43 +6,43 @@ namespace tero.session.src.Features.Spin;
 public class SpinSession : IJoinableSession, ICleanuppable<SpinSession>
 {
     [JsonPropertyName("spin_id")]
-    public Guid SpinId { get; private set; }
+    public Guid SpinId { get; init; }
 
     [JsonPropertyName("base_id")]
-    public Guid BaseId { get; private set; }
+    public Guid BaseId { get; init; }
 
     [JsonPropertyName("host_id")]
-    public Guid HostId { get; private set; }
+    public Guid HostId { get; set; }
 
     [JsonPropertyName("name")]
-    public string Name { get; private set; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
 
     [JsonPropertyName("description")]
-    public string? Description { get; private set; }
+    public string? Description { get; init; }
 
     [JsonPropertyName("state")]
-    public SpinGameState State { get; private set; }
+    public SpinGameState State { get; set; }
 
     [JsonPropertyName("category")]
-    public GameCategory Category { get; private set; }
+    public GameCategory Category { get; init; }
 
     [JsonPropertyName("iterations")]
-    public int Iterations { get; private set; }
+    public int Iterations { get; set; }
 
     [JsonPropertyName("current_iteration")]
-    public int CurrentIteration { get; private set; }
+    public int CurrentIteration { get; set; }
 
     [JsonPropertyName("times_played")]
-    public int TimesPlayed { get; private set; }
+    public int TimesPlayed { get; set; }
 
     [JsonPropertyName("last_played")]
-    public DateTime LastPlayed { get; private set; }
+    public DateTime LastPlayed { get; set; } = DateTime.UtcNow;
 
     [JsonPropertyName("rounds")]
-    public List<string> Rounds { get; private set; } = [];
+    public List<string> Rounds { get; init; } = [];
 
     [JsonPropertyName("players")]
-    public Dictionary<Guid, int> Users { get; private set; } = [];
+    public Dictionary<Guid, int> Users { get; init; } = [];
 
     [JsonConstructor]
     private SpinSession() { }
@@ -69,20 +69,19 @@ public class SpinSession : IJoinableSession, ICleanuppable<SpinSession>
             return Error.GameClosed;
         }
 
-        if (Users.Count == 0 || (Users.Count == 1 && Users.ContainsKey(userId)))
+        if (Users.ContainsKey(userId))
+        {
+            return this;
+        }
+
+        if (Users.Count == 0)
         {
             HostId = userId;
-            Users.Add(userId, 0);
+            Users[userId] = 0;
             return this;
         }
 
-        var exists = Users.ContainsKey(userId);
-        if (exists)
-        {
-            return this;
-        }
-
-        Users.Add(userId, 0);
+        Users[userId] = 0;
         return this;
     }
 
@@ -93,28 +92,45 @@ public class SpinSession : IJoinableSession, ICleanuppable<SpinSession>
             return [];
         }
 
+        var toSelect = Math.Min(numPlayers, Users.Count);
         var rnd = new Random();
-        var r = rnd.NextDouble();
+        var selected = new HashSet<Guid>(toSelect);
+        var userList = Users.Keys.ToList();
+        var maxAttempts = Users.Count * 10;
+        var attempts = 0;
 
-        int i = 0;
-        var selected = new HashSet<Guid>(numPlayers);
-        while (selected.Count < numPlayers)
+        while (selected.Count < toSelect && attempts < maxAttempts)
         {
-            if (i == Users.Count)
-            {
-                r = rnd.NextDouble();
-                i = 0;
-                continue;
-            }
+            attempts++;
+            var r = rnd.NextDouble();
 
-            var (userId, timesChosen) = Users.ElementAt(i);
-            var playerWeight = 1 - timesChosen / Iterations;
-            if (playerWeight > r)
+            foreach (var userId in userList)
+            {
+                if (selected.Contains(userId)) continue;
+
+                var timesChosen = Users[userId];
+                var playerWeight = Iterations > 0
+                    ? 1.0 - (double)timesChosen / Iterations
+                    : 1.0;
+
+                if (playerWeight > r)
+                {
+                    selected.Add(userId);
+                    Users[userId] = timesChosen + 1;
+                    if (selected.Count >= toSelect) break;
+                }
+            }
+        }
+
+        if (selected.Count < toSelect)
+        {
+            var remaining = userList.Where(u => !selected.Contains(u)).ToList();
+            foreach (var userId in remaining)
             {
                 selected.Add(userId);
-                Users[userId] = timesChosen++;
+                Users[userId]++;
+                if (selected.Count >= toSelect) break;
             }
-            i++;
         }
 
         return selected;
@@ -130,7 +146,7 @@ public class SpinSession : IJoinableSession, ICleanuppable<SpinSession>
             return Error.GameFinished;
         }
 
-        State = SpinGameState.RoundInitialized;
+        State = SpinGameState.RoundStarted;
         CurrentIteration++;
         return this;
     }
@@ -153,7 +169,8 @@ public class SpinSession : IJoinableSession, ICleanuppable<SpinSession>
     public SpinSession Start()
     {
         CurrentIteration = 0;
-        State = SpinGameState.RoundInitialized;
+        State = SpinGameState.RoundStarted;
+        LastPlayed = DateTime.UtcNow;
         Rounds.Shuffle();
         return this;
     }

@@ -1,6 +1,5 @@
 using System.Threading.Tasks.Dataflow;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.ObjectPool;
 using tero.session.src.Core;
 using tero.session.src.Features.Platform;
 
@@ -82,6 +81,38 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
     {
         try
         {
+            if (string.IsNullOrEmpty(key))
+            {
+                logger.LogWarning("Key was empty");
+                await CoreUtils.Broadcast(Clients, Error.NullReference, logger, platformClient);
+                return;
+            }
+
+            var removeOldResult = manager.Remove(Context.ConnectionId);
+            if (removeOldResult.IsOk())
+            {
+                var removeOldOption = removeOldResult.Unwrap();
+                if (removeOldOption.IsSome())
+                {
+                    logger.LogWarning("New connection had old connection in cache");
+                    var entry = removeOldOption.Unwrap();
+                    await Groups.RemoveFromGroupAsync(Context.ConnectionId, entry.GameKey);
+                }
+            }
+            else
+            {
+                var log = LogBuilder.New()
+                    .WithAction(LogAction.Create)
+                    .WithCeverity(LogCeverity.Critical)
+                    .WithFunctionName("ConnectToGroup - QuizHub")
+                    .WithDescription("Failed to remove old entry from manager cache")
+                    .Build();
+
+                platformClient.CreateSystemLogAsync(log);
+                logger.LogError("ConnectToGroup: Failed to remove old entry from manager cache");
+            }
+
+
             var result = await cache.Get(key);
             if (result.IsErr())
             {
@@ -121,6 +152,13 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
     {
         try
         {
+            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(question))
+            {
+                logger.LogWarning("Key or question was empty");
+                await CoreUtils.Broadcast(Clients, Error.NullReference, logger, platformClient);
+                return;
+            }
+
             var result = await cache.Upsert(key, session => session.AddQuesiton(question));
             if (result.IsErr())
             {
@@ -151,8 +189,9 @@ public class QuizHub(GameSessionCache<QuizSession> cache, HubConnectionManager<Q
     {
         try
         {
-            if (key is null || key == string.Empty)
+            if (string.IsNullOrEmpty(key))
             {
+                logger.LogWarning("Key was empty");
                 await CoreUtils.Broadcast(Clients, Error.NullReference, logger, platformClient);
                 return;
             }

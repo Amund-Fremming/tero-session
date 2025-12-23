@@ -1,3 +1,4 @@
+using System.Data;
 using System.Net.Sockets;
 using System.Threading.Tasks.Dataflow;
 using Microsoft.AspNetCore.SignalR;
@@ -35,7 +36,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
     {
         try
         {
-            var result = manager.Get(Context.ConnectionId);
+            var result = manager.Remove(Context.ConnectionId);
             if (result.IsErr())
             {
                 await CoreUtils.Broadcast(Clients, result.Err(), logger, platformClient);
@@ -62,10 +63,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             var hubInfo = option.Unwrap();
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, hubInfo.GameKey);
 
-            var upsertResult = await cache.Upsert(
-                hubInfo.GameKey,
-                session => session.RemoveUser(hubInfo.UserId)
-            );
+            var upsertResult = await cache.Upsert(hubInfo.GameKey, session => session.RemoveUser(hubInfo.UserId));
 
             if (upsertResult.IsErr())
             {
@@ -73,10 +71,10 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
                 return;
             }
 
-            var removeOption = result.Unwrap();
-            if (removeOption.IsSome())
+            var newHostOption = upsertResult.Unwrap();
+            if (newHostOption.IsSome())
             {
-                var newHostId = removeOption.Unwrap();
+                var newHostId = newHostOption.Unwrap();
                 await Clients.GroupExcept(hubInfo.GameKey, Context.ConnectionId).SendAsync("host", newHostId);
             }
 
@@ -101,6 +99,47 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
     {
         try
         {
+            logger.LogInformation("Connecting user to group: {string}", key);
+            if (string.IsNullOrEmpty(key))
+            {
+                await CoreUtils.Broadcast(Clients, Error.NullReference, logger, platformClient);
+                return;
+            }
+
+
+            var removeOldResult = manager.Remove(Context.ConnectionId);
+            if (removeOldResult.IsOk())
+            {
+                var removeOldOption = removeOldResult.Unwrap();
+                if (removeOldOption.IsSome())
+                {
+                    var entry = removeOldOption.Unwrap();
+                    await Groups.RemoveFromGroupAsync(Context.ConnectionId, entry.GameKey);
+                }
+            }
+            else
+            {
+                var log = LogBuilder.New()
+                    .WithAction(LogAction.Create)
+                    .WithCeverity(LogCeverity.Critical)
+                    .WithFunctionName("ConnectToGroup - SpinHub")
+                    .WithDescription("Failed to remove old entry from manager cache")
+                    .Build();
+
+                platformClient.CreateSystemLogAsync(log);
+                logger.LogError("ConnectToGroup: Failed to remove old entry from manager cache");
+            }
+
+            var getResult = await cache.Get(key);
+            if (getResult.IsErr())
+            {
+                await CoreUtils.Broadcast(Clients, getResult.Err(), logger, platformClient);
+                return;
+            }
+
+            var iterations = getResult.Unwrap().Iterations;
+            await Clients.Caller.SendAsync("iterations", iterations);
+
             var result = await cache.Upsert(
                 key,
                 session => session.AddUser(userId)
@@ -126,7 +165,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             }
 
             await Groups.AddToGroupAsync(Context.ConnectionId, key);
-            logger.LogDebug("User added to SpinSession");
+            logger.LogInformation("User added to SpinSession");
 
         }
         catch (Exception error)
@@ -148,6 +187,13 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
     {
         try
         {
+            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(round))
+            {
+                logger.LogWarning("Key or round was empty");
+                await CoreUtils.Broadcast(Clients, Error.NullReference, logger, platformClient);
+                return;
+            }
+
             var result = await cache.Upsert(
                 key,
                 session => session.AddRound(round)
@@ -182,6 +228,13 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
     {
         try
         {
+            if (string.IsNullOrEmpty(key))
+            {
+                logger.LogWarning("Key was empty");
+                await CoreUtils.Broadcast(Clients, Error.NullReference, logger, platformClient);
+                return;
+            }
+
             var result = await cache.Upsert(
                 key,
                 session => session.Start()
@@ -195,6 +248,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
 
             var session = result.Unwrap();
             var roundText = session.GetRoundText();
+            await Clients.Group(key).SendAsync("signal_start", true);
             await Clients.Caller.SendAsync("round_text", roundText);
             await platformClient.PersistGame(GameType.Spin, key, session);
         }
@@ -212,10 +266,18 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             logger.LogError(error, nameof(StartGame));
         }
     }
+
     public async Task StartRound(string key)
     {
         try
         {
+            if (string.IsNullOrEmpty(key))
+            {
+                logger.LogWarning("Key was empty");
+                await CoreUtils.Broadcast(Clients, Error.NullReference, logger, platformClient);
+                return;
+            }
+
             var result = await cache.Upsert(key, session => session.Start());
             if (result.IsErr())
             {
@@ -223,10 +285,18 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
                 return;
             }
 
+            await Clients.Group(key).SendAsync("state", SpinGameState.RoundInProgress);
+
             var session = result.Unwrap();
             var userIds = session.GetUserIds();
             const int selectedPerRound = 2;
             var selected = session.GetSpinResult(selectedPerRound);
+            if (selected.Count == 0)
+            {
+                logger.LogWarning("No players in the game!");
+                return;
+            }
+
             var rng = new Random();
             int spinRounds = rng.Next(2, 7);
 
@@ -237,10 +307,11 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
                     var batch = userIds.Skip(j).Take(selectedPerRound);
                     foreach (var id in batch)
                     {
+                        logger.LogInformation("Current selected user: {Guid}", id);
                         await Clients.Group(key).SendAsync("selected", id);
                     }
 
-                    await Task.Delay(400);
+                    await Task.Delay(1500);
                 }
             }
 
@@ -252,7 +323,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             }
 
             await Task.WhenAll(tasks);
-            logger.LogDebug("Round players selected for SpinSession");
+            logger.LogInformation("Round players selected for SpinSession");
         }
         catch (Exception error)
         {
@@ -273,6 +344,13 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
     {
         try
         {
+            if (string.IsNullOrEmpty(key))
+            {
+                logger.LogWarning("Key was empty");
+                await CoreUtils.Broadcast(Clients, Error.NullReference, logger, platformClient);
+                return;
+            }
+
             var result = await cache.Upsert(
                 key,
                 session => session.IncrementRound()

@@ -29,7 +29,7 @@ public class PlatformController(
             {
                 GameType.Spin => CoreUtils.InsertPayload(platformClient, spinCache, key, request.Value),
                 GameType.Quiz => CoreUtils.InsertPayload(platformClient, quizCache, key, request.Value),
-                _ => (400, ApiResponse.Error)
+                _ => (400, "Not supported game type")
             };
 
             return StatusCode(statusCode, response);

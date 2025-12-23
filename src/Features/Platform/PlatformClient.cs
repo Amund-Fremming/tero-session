@@ -196,7 +196,7 @@ public class PlatformClient(IHttpClientFactory httpClientFactory, ILogger<Platfo
 
                 CreateSystemLogAsync(log);
                 var responseBody = await response.Content.ReadAsStringAsync();
-                logger.LogError("Failed to free game key, status code: {StatusCode}, response: {Response}", response.StatusCode, responseBody);
+                logger.LogError("Failed to free game key {string}", key);
                 return Error.Http;
             }
 

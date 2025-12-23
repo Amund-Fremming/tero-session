@@ -16,7 +16,6 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
     public async Task<Result<TSession, Error>> Get(string key)
     {
         SemaphoreSlim sem = null!;
-
         try
         {
             if (key == string.Empty || key is null)
@@ -52,7 +51,6 @@ public class GameSessionCache<TSession>(ILogger<GameSessionCache<TSession>> logg
         {
             sem?.Release();
         }
-
     }
 
     public Result<Error> Insert(string key, TSession session)
