@@ -40,6 +40,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             if (result.IsErr())
             {
                 await CoreUtils.Broadcast(Clients, result.Err(), logger, platformClient);
+                await base.OnDisconnectedAsync(exception);
                 return;
             }
 
@@ -64,21 +65,23 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, hubInfo.GameKey);
 
             var upsertResult = await cache.Upsert(hubInfo.GameKey, session => session.RemoveUser(hubInfo.UserId));
-
             if (upsertResult.IsErr())
             {
                 await CoreUtils.Broadcast(Clients, upsertResult.Err(), logger, platformClient);
+                await base.OnDisconnectedAsync(exception);
                 return;
             }
 
-            var newHostOption = upsertResult.Unwrap();
-            if (newHostOption.IsSome())
+            var session = upsertResult.Unwrap();
+            if (session.UsersCount() == 0)
             {
-                var newHostId = newHostOption.Unwrap();
-                await Clients.GroupExcept(hubInfo.GameKey, Context.ConnectionId).SendAsync("host", newHostId);
+                await cache.Remove(hubInfo.GameKey);
             }
-
-            await base.OnDisconnectedAsync(exception);
+            await Task.WhenAll(
+                Clients.Group(hubInfo.GameKey).SendAsync("host", session.HostId),
+                Clients.Group(hubInfo.GameKey).SendAsync("players_count", session.UsersCount()),
+                base.OnDisconnectedAsync(exception)
+            );
         }
         catch (Exception error)
         {
@@ -105,7 +108,6 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
                 await CoreUtils.Broadcast(Clients, Error.NullReference, logger, platformClient);
                 return;
             }
-
 
             var removeOldResult = manager.Remove(Context.ConnectionId);
             if (removeOldResult.IsOk())
@@ -152,10 +154,7 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             }
 
             var session = result.Unwrap();
-            if (session.IsHost(userId))
-            {
-                await Clients.Group(key).SendAsync("host", userId);
-            }
+            await Clients.Group(key).SendAsync("host", session.HostId);
 
             var insertResult = manager.Insert(Context.ConnectionId, new HubInfo(key, userId));
             if (insertResult.IsErr())
@@ -165,8 +164,8 @@ public class SpinHub(ILogger<SpinHub> logger, HubConnectionManager<SpinSession> 
             }
 
             await Groups.AddToGroupAsync(Context.ConnectionId, key);
+            await Clients.Group(key).SendAsync("players_count", session.UsersCount());
             logger.LogInformation("User added to SpinSession");
-
         }
         catch (Exception error)
         {

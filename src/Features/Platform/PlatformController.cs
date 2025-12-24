@@ -1,8 +1,4 @@
-using System.Diagnostics;
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.Extensions.ObjectPool;
 using tero.session.src.Core;
 using tero.session.src.Features.Quiz;
 using tero.session.src.Features.Spin;
@@ -84,43 +80,4 @@ public class PlatformController(
         }
     }
 
-    [HttpGet("count/{gameType}/{gameKey}")]
-    public async Task<IActionResult> NumberOfPlayers(GameType gameType, string gameKey)
-    {
-        try
-        {
-            int num = 0;
-            switch (gameType)
-            {
-                case GameType.Spin:
-                    var spinResult = await spinCache.Get(gameKey);
-                    if (spinResult.IsErr())
-                    {
-                        // TODO - log?
-                        return StatusCode(500, "Failed to get game entry from cache");
-                    }
-                    var spinSession = spinResult.Unwrap();
-                    num = spinSession.UsersCount();
-                    break;
-                default:
-                    return StatusCode(500, "Game type not supported");
-            }
-
-            return Ok(num);
-        }
-        catch (Exception error)
-        {
-            var log = LogBuilder.New()
-                .WithAction(LogAction.Other)
-                .WithCeverity(LogCeverity.Warning)
-                .WithFunctionName("GetCurrentPlayers")
-                .WithDescription("Threw an exception")
-                .WithMetadata(error)
-                .Build();
-
-            platformClient.CreateSystemLogAsync(log);
-            logger.LogError(error, nameof(CacheInfo));
-            return StatusCode(500, "Internal server error");
-        }
-    }
 }

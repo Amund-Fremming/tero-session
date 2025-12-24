@@ -50,16 +50,15 @@ public class SpinSession : IJoinableSession, ICleanuppable<SpinSession>
     public List<Guid> GetUserIds() => Users.Select(u => u.Key).ToList().Shuffle();
     public int UsersCount() => Users.Count;
 
-    public Option<Guid> RemoveUser(Guid userId)
+    public SpinSession RemoveUser(Guid userId)
     {
+        Users.Remove(userId);
         if (userId == HostId)
         {
-            var hostId = SetNewHost();
-            return Option<Guid>.Some(hostId);
+            HostId = Users.Keys.FirstOrDefault();
         }
 
-        Users.Remove(userId);
-        return Option<Guid>.None;
+        return this;
     }
 
     public Result<SpinSession, Error> AddUser(Guid userId)
@@ -77,11 +76,9 @@ public class SpinSession : IJoinableSession, ICleanuppable<SpinSession>
         if (Users.Count == 0)
         {
             HostId = userId;
-            Users[userId] = 0;
-            return this;
         }
 
-        Users[userId] = 0;
+        Users.Add(userId, 0);
         return this;
     }
 

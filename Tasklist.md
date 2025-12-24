@@ -1,11 +1,5 @@
 # Tasklist
 
-**First**
-
-- [ ] Semlocks on manager
-- [ ] Broadcast errors in catch
-- [ ] Test impl with platform and app
-
 **Later**
 
 - Make SpinGame generic and only possible to inherit from
